@@ -1,0 +1,98 @@
+*******************************************************************************************
+1. Understanding the sip endpoint
+*******************************************************************************************
+    - pjsip.conf
+        - endpoint type
+            - endpoint type 
+            - authentication type
+            - aor (Address Of Record) type
+
+*******************************************************************************************
+2. The examples of endpoint structure
+*******************************************************************************************
+
+[200]
+type = endpoint
+context = from-internal
+disallow = all
+allow = ulaw,alaw
+direct_media = no
+trust_id_outbound = yes
+device_state_busy_at = 1
+dtmf_mode = rfc4733
+auth = 200
+aors = 200
+callerid = Lindsey Freddie <200>
+
+[200]
+type = auth
+auth_type = userpass
+password = 4webrEtHupHewu4
+username = 0019159BF771
+
+[200]
+type = aor
+max_contacts = 1
+
+*******************************************************************************************
+3. Reload pjsip module
+*******************************************************************************************
+pbxsys*CLI> module reload res_pjsip.so
+
+Module 'res_pjsip.so' reloaded successfully.
+    -- Reloading module 'res_pjsip.so' (Basic SIP resource)
+[Sep  1 19:13:13] NOTICE[2129]: sorcery.c:1348 sorcery_object_load: Type 'system' is not reloadable, maintaining previous values
+
+*******************************************************************************************
+# Run this command to show endpoints
+*******************************************************************************************
+
+pbxsys*CLI> pjsip show endpoints
+
+ Endpoint:  <Endpoint/CID.....................................>  <State.....>  <Channels.>
+    I/OAuth:  <AuthId/UserName...........................................................>
+        Aor:  <Aor............................................>  <MaxContact>
+      Contact:  <Aor/ContactUri..........................> <Hash....> <Status> <RTT(ms)..>
+  Transport:  <TransportId........>  <Type>  <cos>  <tos>  <BindAddress..................>
+   Identify:  <Identify/Endpoint.........................................................>
+        Match:  <criteria.........................>
+    Channel:  <ChannelId......................................>  <State.....>  <Time.....>
+        Exten: <DialedExten...........>  CLCID: <ConnectedLineCID.......>
+==========================================================================================
+
+ Endpoint:  200/200                                              Unavailable   0 of 1
+     InAuth:  200/0019159BF771
+        Aor:  200                                                1
+
+
+Objects found: 1
+
+*******************************************************************************************
+4. Create endpoint    
+*******************************************************************************************
+    - 201 : username = 201 / password = 201 / max_contact = 1
+    - 202 : username = 202 / password = 202 / max_contact = 2
+    - 203 : username = 203 / password = 203 / max_contact = 2
+    - 204 : username = 204 / password = 204 / max_contact = 3
+    - 205 : username = 203 / password = 203 / max_contact = 5
+
+*******************************************************************************************
+5. Create endpoint with templates
+*******************************************************************************************
+
+[endpoint-internal](!)
+type = endpoint
+context = from-internal
+disallow = all
+allow = ulaw,alaw
+direct_media = no
+trust_id_outbound = yes
+device_state_busy_at = 1
+dtmf_mode = rfc4733
+
+[auth-userpass](!)
+type = auth
+auth_type = userpass
+
+[aor-single-reg](!)
+type = aor
