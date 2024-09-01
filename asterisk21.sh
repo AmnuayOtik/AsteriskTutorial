@@ -3,7 +3,7 @@
 # * Copyright 2024 by Otik Network Company
 # This script carries NO WARRANTY.
 #####################################################################################
-# PBXSYS BY OTIK NETWORK COMPANY                             #
+# PBXSYS BY OTIK NETWORK COMPANY | www.otiknetwork.com                              #
 #####################################################################################
 
 LOG_FOLDER="/var/log/pbx"
