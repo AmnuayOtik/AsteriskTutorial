@@ -7,6 +7,7 @@
 #####################################################################################
 
 LOG_FOLDER="/var/log/pbx"
+AST_VERSION="21"
 
 # Function to check if the script is run as root
 check_root() {
@@ -101,14 +102,14 @@ apt-get -y install unixodbc unixodbc-dev libodbc1 odbc-mariadb
 # Install Asterisk
 echo "Downloading Asterisk..."
 cd /usr/src
-wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-21-current.tar.gz
+wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-${AST_VERSION}-current.tar.gz
 if [ $? -ne 0 ]; then
     echo "Download Asterisk failed"
     exit 1
 fi
-tar zxvf asterisk-21-current.tar.gz
-rm -rf asterisk-21-current.tar.gz
-cd asterisk-21*/
+tar zxvf asterisk-${AST_VERSION}-current.tar.gz
+rm -rf asterisk-${AST_VERSION}-current.tar.gz
+cd asterisk-${AST_VERSION}*/
 contrib/scripts/install_prereq install
 ./configure --libdir=/usr/lib64 --with-pjproject-bundled --with-jansson-bundled
 
@@ -117,7 +118,6 @@ echo "Compiling and installing Asterisk..."
 make menuselect.makeopts
 
 menuselect/menuselect \
---enable chan_mobile \
 --enable chan_ooh323 \
 --enable format_mp3 \
 --enable res_config_mysql \
@@ -243,5 +243,7 @@ WWW.OTIKNETWORK.COM / 02-538-4378, 095-549-9819
 
 EOF
 
+echo "***************************************************************"
 echo "Asterisk installation completed successfully."
-
+echo "Please reboot your system one time"
+echo "***************************************************************"
