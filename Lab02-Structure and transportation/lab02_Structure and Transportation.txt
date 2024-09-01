@@ -1,0 +1,115 @@
+1. Directories (If you would like to see with tree structure run this command "apt install tree" or you can run "ls" command to show all file in the asterisk directories)
+
+root@pbxsys:/etc/asterisk# tree
+    .
+    ├── asterisk.conf
+    ├── cdr.conf
+    ├── cdr_custom.conf
+    ├── confbridge.conf
+    ├── extensions.conf
+    ├── indications.conf
+    ├── logger.conf
+    ├── modules.conf
+    ├── musiconhold.conf
+    ├── pjsip.conf
+    ├── pjsip_notify.conf
+    ├── queues.conf
+    ├── README
+
+2. Check user permission for runing asterisk (asterisk:asterisk) user and group
+
+    runuser = asterisk              ; The user to run as. The default is root.
+    rungroup = asterisk             ; The group to run as. The default is root
+
+3. Transportation (UDP/TCP/TLS)
+
+;============ TRANSPORTS ============
+; Our primary transport definition for UDP communication behind NAT.
+
+[transport-udp-nat]
+type = transport
+protocol = udp
+bind = 0.0.0.0
+
+; NAT settings
+;local_net = 192.168.0.0/24
+;local_net = 192.168.1.0/24
+;local_net = 192.168.98.0/24
+;external_media_address = office.otikcloud.com
+;external_signaling_address = office.otikcloud.com
+
+*******************************************************************************************
+# Note : Login to Asterisk command (CLI) and run "pjsip show transports" to show transportation.
+*******************************************************************************************
+pbxsys*CLI> pjsip show transports
+
+Transport:  <TransportId........>  <Type>  <cos>  <tos>  <BindAddress....................>
+==========================================================================================
+
+Transport:  transport-udp-nat         udp      0      0  0.0.0.0:5060
+
+Objects found: 1
+
+*******************************************************************************************
+# Note : You can run "pjsip show transport [transport context] to show transportation information.
+*******************************************************************************************
+pbxsys*CLI> pjsip show transport transport-udp-nat
+
+Transport:  <TransportId........>  <Type>  <cos>  <tos>  <BindAddress....................>
+==========================================================================================
+
+Transport:  transport-udp-nat         udp      0      0  0.0.0.0:5060
+
+ ParameterName               : ParameterValue
+ ============================================
+ allow_reload                : false
+ allow_wildcard_certs        : No
+ async_operations            : 1
+ bind                        : 0.0.0.0:5060
+ ca_list_file                :
+ ca_list_path                :
+ cert_file                   :
+ cipher                      :
+ cos                         : 0
+ domain                      :
+ external_media_address      :
+ external_signaling_address  :
+ external_signaling_port     : 0
+ local_net                   :
+ method                      : unspecified
+ password                    :
+ priv_key_file               :
+ protocol                    : udp
+ require_client_cert         : No
+ symmetric_transport         : false
+ tcp_keepalive_enable        : true
+ tcp_keepalive_idle_time     : 30
+ tcp_keepalive_interval_time : 1
+ tcp_keepalive_probe_count   : 5
+ tos                         : 0
+ verify_client               : No
+ verify_server               : No
+ websocket_write_timeout     : 100
+
+
+4. Edit pjsip.conf and change bind port to 5161 and reload module pjsip run this command "module reload res_pjsio.so"
+   (sometime you have to restart Asterisk to take this effect.)
+
+edit pjsip.conf
+
+[transport-udp-nat]
+type = transport
+protocol = udp ; try to change it to tcp or tls
+bind = 0.0.0.0:5161 ; change 5060 to 5161
+
+# run this command to show transportation again after change it.
+pbxsys*CLI> pjsip show transports
+
+Transport:  <TransportId........>  <Type>  <cos>  <tos>  <BindAddress....................>
+==========================================================================================
+
+Transport:  transport-udp-nat         udp      0      0  0.0.0.0:5161
+
+Objects found: 1
+
+pbxsys*CLI>
