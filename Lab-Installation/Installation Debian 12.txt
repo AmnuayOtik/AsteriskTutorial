@@ -1,1 +1,9 @@
-apt install
+1. Install from image step 1 - 34
+2. Login user / pass (otikadmin/otiknetwork)
+3. Change user to root (su -) and enter your password (see on installation step 11-12)
+4. Run command "apt install git -y" (Install git hub for download resources)
+5. Run command "cd /tmp"
+6. Download Code "git clone https://github.com/AmnuayOtik/AsteriskTutorial.git"
+7. Run command "cd AsteriskTutorial" (check path by command pwd it will show "/tmp/AsteriskTutorial")
+
+8.
