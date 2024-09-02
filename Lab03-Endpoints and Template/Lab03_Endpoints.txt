@@ -138,6 +138,6 @@ dtmf_mode = rfc4733
 type = auth
 auth_type = userpass
 
-[aor-single-reg](!)
+[aor-reg](!)
 type = aor
 

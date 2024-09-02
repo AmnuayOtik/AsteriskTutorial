@@ -1,0 +1,47 @@
+*******************************************************************************************
+1. Create file "cli_aliases.conf" on /etc/asterisk/ and give permission to asterisk:asterisk
+*******************************************************************************************
+    - run this command "touch /etc/asterisk/cli_aliases.conf"
+    - run this command "chown -R asterisk:asterisk /etc/asterisk/cli_aliases.conf"
+    - check permission with this command "ls -ls" if it show asterisk:asterisk it work.
+
+*******************************************************************************************
+2. Edit file "cli_aliases.conf"
+*******************************************************************************************
+
+[general]
+template = friendly
+
+[friendly]
+hangup request=channel request hangup
+originate=channel originate
+help=core show help
+pri intense debug span=pri set debug intense span
+reload=module reload
+pjsip reload=module reload res_pjsip.so res_pjsip_authenticator_digest.so res_pjsip_endpoint_identifier_ip.so res_pjsip_mwi.so res_pjsip_notify.so res_pjsip_outbound_publish.so res_pjsip_publish_asterisk.so res_pjsip_outbound_registration.so
+
+# Note run this command for reload cli_aliases module
+pbxsys*CLI> module reload res_clialiases.so
+
+# Note test alias command
+pbxsys*CLI>pjsip reload
+
+# result 
+Module 'res_pjsip.so' reloaded successfully.
+Module 'res_pjsip_authenticator_digest.so' reloaded successfully.
+Module 'res_pjsip_endpoint_identifier_ip.so' reloaded successfully.
+Module 'res_pjsip_mwi.so' reloaded successfully.
+Module 'res_pjsip_notify.so' reloaded successfully.
+Module 'res_pjsip_outbound_publish.so' reloaded successfully.
+Module 'res_pjsip_publish_asterisk.so' reloaded successfully.
+Module 'res_pjsip_outbound_registration.so' reloaded successfully.
+    -- Reloading module 'res_pjsip.so' (Basic SIP resource)
+[Sep  2 07:41:43] NOTICE[845]: sorcery.c:1348 sorcery_object_load: Type 'system' is not reloadable, maintaining previous values
+    -- Reloading module 'res_pjsip_authenticator_digest.so' (PJSIP authentication resource)
+    -- Reloading module 'res_pjsip_endpoint_identifier_ip.so' (PJSIP IP endpoint identifier)
+    -- Reloading module 'res_pjsip_mwi.so' (PJSIP MWI resource)
+    -- Reloading module 'res_pjsip_notify.so' (CLI/AMI PJSIP NOTIFY Support)
+    -- Reloading module 'res_pjsip_outbound_publish.so' (PJSIP Outbound Publish Support)
+    -- Reloading module 'res_pjsip_publish_asterisk.so' (PJSIP Asterisk Event PUBLISH Support)
+    -- Reloading module 'res_pjsip_outbound_registration.so' (PJSIP Outbound Registration Support)
+
