@@ -45,3 +45,18 @@ Module 'res_pjsip_outbound_registration.so' reloaded successfully.
     -- Reloading module 'res_pjsip_publish_asterisk.so' (PJSIP Asterisk Event PUBLISH Support)
     -- Reloading module 'res_pjsip_outbound_registration.so' (PJSIP Outbound Registration Support)
 
+*******************************************************************************************
+3. PJSIP Basic command
+*******************************************************************************************
+    - pjsip reload
+    - pjsip show endpoints
+    - pjsip show endpoint [endpoint name]
+    - pjsip show aors
+    - pjsip show aor [aor name]
+    - pjsip show transports
+    - pjsip show transport [transport name]
+    - pjsip show registrations
+    - pjsip show registration [registration name]
+    - pjsip set logger on|off (for sip debuging)
+
+    
