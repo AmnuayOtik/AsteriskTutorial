@@ -84,6 +84,3 @@ type = identify
 endpoint = trunk-endpoint-peer-p550
 match = 192.168.98.150
 *****************************************************
-
-
-

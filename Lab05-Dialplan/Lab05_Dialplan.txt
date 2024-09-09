@@ -285,7 +285,8 @@ see more : https://docs.asterisk.org/Latest_API/API_Documentation/Dialplan_Appli
     6.4 Run command "dialplan show from-internal" check it.
 
 
+Link convert text to speech (Thai support)
+https://www.narakeet.com/app/text-to-audio
 
-
-
-
+web convert mp3 to wav.
+https://g711.org/

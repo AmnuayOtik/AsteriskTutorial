@@ -1,0 +1,111 @@
+1. Asterisk cmd Record
+
+The Record() command in Asterisk is used to record audio from a call and save it to a file. This can be useful for recording voicemail greetings, IVR prompts, or any other audio needed for future playback.
+
+Basic Syntax
+exten => <extension>,n,Record(<filename>.<format>[,<silence>[,<maxduration>[,<options>[,<offset>]]]])
+
+Parameters:
+- filename: 
+    The name of the file where the recording will be saved (do not include the path). The file will be saved in the Asterisk sounds directory.
+- format: 
+    The audio file format (e.g., wav, ulaw, gsm). Asterisk will save the file in this format.
+- silence (optional): 
+    The number of seconds of silence after which recording will stop (e.g., 5 means the recording will stop if there is 5 seconds of silence).
+- maxduration (optional): 
+    The maximum duration of the recording in seconds. If omitted, the recording will continue indefinitely unless terminated by a key press or silence.
+- options (optional): 
+    Additional options to control the behavior of the recording (see below). offset (optional): The number of samples from the beginning of the file where the recording will start.
+
+Options:
+a: Append to an existing file rather than overwriting it.
+n: Do not answer the channel before recording.
+q: Quiet mode. Don't play a beep before starting the recording.
+s: Stop recording after silence (used with the silence parameter).
+t: Allow the recording to be terminated with the # key.
+x: Ignore the * key for exit.
+
+
+Example Usage
+1. Basic Recording to a WAV File
+    Record a call and save the recording to custom/ivr-greeting.wav in the default sounds directory.
+
+*****************************************************
+Example :
+
+exten => 6401,1,Answer()
+exten => 6401,2,Record(custom/ivr-greeting.wav)
+exten => 6401,3,Hangup()
+*****************************************************
+
+This will:
+
+Answer the call.
+    - Start recording audio to the custom/ivr-greeting.wav file.
+    - Hang up when the recording is finished or terminated.
+
+
+2. Recording with a Time Limit and Silence Detection
+Record a call with a maximum duration of 60 seconds, stopping the recording after 5 seconds of silence.
+
+*****************************************************
+Example :
+
+exten => 6402,1,Answer()
+exten => 6402,2,Record(custom/voicemail.wav,5,60,s)
+exten => 6402,3,Hangup()
+*****************************************************
+
+This will:
+
+Answer the call.
+    - Start recording audio to custom/voicemail.wav.
+    - Stop the recording if there is 5 seconds of silence or the 60-second limit is reached.
+    - Hang up.
+
+
+3. Allow the User to Stop Recording with #
+Allow the caller to terminate the recording by pressing #
+
+*****************************************************
+Example :
+exten => 6403,1,Answer()
+exten => 6403,2,Record(custom/user-prompt.wav,,,t)
+exten => 6403,3,Hangup()
+*****************************************************
+
+This will:
+
+Answer the call.
+    - Start recording audio to custom/user-prompt.wav.
+    - Allow the caller to stop recording by pressing #.
+    - Hang up.
+
+
+Notes:
+The recording will automatically stop if the channel is hung up.
+The file is saved in the /var/lib/asterisk/sounds/ directory by default unless otherwise specified.
+By using the Record() command, you can easily record audio for various use cases in your Asterisk dialplan.
+
+*** No application 'Record' ******
+The error message pbx_extension_helper: No application 'Record' for extension means that the Record() application is not available in your Asterisk installation. This typically happens when the necessary modules are not loaded or installed.
+
+To resolve this issue, follow these steps:
+
+1. Ensure the app_record.so Module is Loaded
+The Record() application is provided by the app_record.so module in Asterisk. To check if it is loaded, use the following command from the Asterisk CLI:
+
+asterisk -rx "module show like record"
+
+
+If you do not see app_record.so in the output, the module is not loaded.
+
+2. Load the app_record.so Module
+If the module is installed but not loaded, you can load it manually using the following Asterisk CLI command:
+
+asterisk -rx "module load app_record.so"
+
+3. Check if the Module is Installed
+If loading the module fails, the module might not be installed. You need to recompile Asterisk with the app_record module included. Follow these steps:
+
+

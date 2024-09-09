@@ -1,0 +1,199 @@
+1. Understanding How to create Ring group features.
+
+A Ring Group in telephony systems like Asterisk is a feature that allows multiple extensions (phones) to ring simultaneously or in sequence when a specific number (ring group number) is called. This is particularly useful for departments or teams (such as Sales or Support) where any available team member should be able to answer incoming calls.
+
+*** Key Concepts of a Ring Group: ***
+
+    - Ring Group Number:
+
+        A special number assigned to a ring group (e.g., 6501). When this number is dialed, multiple extensions ring at once or follow a specific ringing pattern.
+
+    - Group Members (Extensions):
+        The extensions that are part of the ring group. For example, if you want extensions 200, 201, and 202 to ring when someone calls the ring group number, these extensions become the "members" of the group.
+
+    -Ring Strategy (Ring Pattern): 
+        There are different ways the system can ring the members of a group:
+
+    - Failover/Timeout:
+        If no one in the ring group answers the call within a specified time (e.g., 30 seconds), the call can be routed to another destination, such as voicemail, an external number, or another group.
+
+Use Case Examples:
+    Sales Department: 
+        A ring group is set up for Sales (e.g., number 6501). When a customer calls the sales number, all sales representatives' phones (extensions 200, 201, 202) ring at the same time. The first person to pick up the phone answers the call.
+    
+    Support Department: 
+        You might configure a support department ring group (e.g., 6502), where calls are handled in a hunt strategy, ringing each technician in turn until someone answers.
+
+Example of How a Ring Group Works:
+
+Imagine a company has a sales team with three members (ext. 200, 201, 202). The company creates a sales ring group with the number 6501. When a customer dials 6501, the following happens:
+
+ - All three extensions (200, 201, and 202) ring simultaneously (if the strategy is "Ring All").
+
+ - The first sales team member to answer the call takes it, and the ringing stops on the other phones.
+
+ - If no one answers within the set time limit (e.g., 30 seconds), the call could be forwarded to voicemail or another department.
+
+
+Why Use Ring Groups?
+
+    - Efficient Call Distribution: Ring groups ensure that an incoming call reaches multiple people at once, increasing the chances that the call will be answered promptly.
+
+    - Flexibility in Call Handling: Different ring strategies provide flexibility, ensuring that calls can be routed efficiently based on business needs.
+
+    - Improved Customer Service: By making sure that calls reach available team members quickly, you can reduce wait times and improve the customer experience.
+
+Ring Group in Asterisk:
+
+In Asterisk, you can configure a ring group using the dialplan. Here’s an example configuration that shows how to set up a basic ring group with three extensions (200, 201, and 202) under the group number 6501.
+
+****************************************************
+Example :
+
+[sales-ring-group]
+exten => 6501,1,NoOp(Sales Ring Group)
+same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30) ; Ring all extensions for 30 seconds
+same => n,Hangup()
+
+****************************************************
+
+ - The system will ring all three extensions simultaneously for 30 seconds.
+ - If one of the extensions answers, the others stop ringing.
+ - If no one answers within 30 seconds, the call will hang up (you could route it elsewhere like voicemail instead).
+
+ Conclusion:
+Ring groups are a powerful feature in Asterisk (and many other phone systems) that allow for effective call distribution across teams or departments. Whether you're building a sales hotline, a support desk, or any department that needs to handle calls collectively, ring groups make it easy to ensure that no calls are missed.
+
+
+2. Create a Ring Group in Asterisk.
+
+    2.1 Edit Your Dialplan You need to edit the extensions.conf file in Asterisk, where the dialplan is defined. This file is typically located in /etc/asterisk/extensions.conf.
+
+    2.2 Define the Ring Group in the Dialplan Add a new context or extend an existing one to handle the ring group functionality. Here's an example that sets up the ring group for extension 6501, ringing extensions 200, 201, and 202.
+
+
+    [sales-ring-group]
+    exten => 6501,1,NoOp(Sales Ring Group)
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30) ; Ring all extensions for 30 seconds
+    same => n,Hangup()
+
+
+        In this example:
+
+            - 6501: The number of the ring group (this is what the caller will dial).
+
+            - Dial(PJSIP/200&PJSIP/201&PJSIP/202,30): This command tells Asterisk to ring all three extensions (200, 201, and 202) simultaneously for 30 seconds. You can adjust the time by changing the second parameter (30).
+
+            - Hangup(): After the ringing or when the call is answered, the call ends if not handled further.
+
+
+    2.3 Include the Context in Your Dialplan If your system is using the from-internal context (for internal calls), include the sales-ring-group context in the relevant section:
+
+
+        [from-internal]
+        include => sales-ring-group
+
+
+    2.4 Reload Asterisk After making changes to the extensions.conf file, reload the Asterisk dialplan to apply the changes. You can do this from the Asterisk CLI:
+
+        asterisk -rx "dialplan reload"
+
+3. Examples of Ring strategies
+    
+    3.1 Simultaneous Ringing (Ring All)
+    This strategy rings all extensions at the same time, and the first one to pick up will answer the call.
+    
+    ****************************************************
+    Example :
+    
+    [sales-ring-group]
+    exten => 6501,1,NoOp(Sales Ring Group - Ring All)
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30)  ; Rings all at once
+    same => n,Hangup()
+
+    ****************************************************
+
+    Note : 
+    - PJSIP/200&PJSIP/201&PJSIP/202: Rings all the extensions simultaneously.
+    - The call will ring for 30 seconds before timing out or being routed elsewhere.
+
+
+    3.2 Sequential Ringing (Hunt Group)
+    This strategy rings one extension first, and if not answered, it moves to the next one, and so on.
+    
+    ****************************************************
+    Example :
+    
+    [sales-hunt-group]
+    exten => 6501,1,NoOp(Sales Hunt Group - Sequential Ringing)
+    same => n,Dial(PJSIP/200,15)  ; Ring extension 200 for 15 seconds
+    same => n,Dial(PJSIP/201,15)  ; If no answer, ring extension 201 for 15 seconds
+    same => n,Dial(PJSIP/202,15)  ; If no answer, ring extension 202 for 15 seconds
+    same => n,Hangup()
+
+    ****************************************************
+
+    Note :
+        - This will ring extension 200 for 15 seconds, then 201, then 202 if none of the previous extensions answer.
+
+
+    3.3 Memory Hunt
+    This strategy adds each extension to the ring pattern if no one answers, so it rings an increasing number of phones.
+
+    [sales-memory-hunt]
+    exten => 6501,1,NoOp(Sales Memory Hunt - Increasing Phones)
+    same => n,Dial(PJSIP/200,10)          ; Ring extension 200 for 10 seconds
+    same => n,Dial(PJSIP/200&PJSIP/201,10) ; Then ring 200 and 201 together for 10 seconds
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,10) ; Then add extension 202 to the ring group
+    same => n,Hangup()
+
+    Note :
+        - This method starts by ringing 200 alone, then adds 201, and finally 202, if the previous combinations don’t answer.
+
+    3.4 Ringback Tone (r Option)
+    The r option plays a ringback tone to the caller while the phones are ringing.
+
+    [sales-ringback-tone]
+    exten => 6501,1,NoOp(Sales Ring Group with Ringback Tone)
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30,r)  ; Play ringback tone to the caller
+    same => n,Hangup()
+
+    Note :
+        - The r option ensures that the caller hears a ringback tone while the system is ringing the extensions.
+
+    3.5 Music on Hold (m Option)
+    The m option plays music on hold to the caller instead of a ringing sound.
+
+    [sales-music-on-hold]
+    exten => 6501,1,NoOp(Sales Ring Group with Music on Hold)
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30,m(default))  ; Play music on hold
+    same => n,Hangup()
+
+    3.6 Ring Extension with Call Timeout and Failover
+    You can also add a timeout and configure what happens when no one answers the call.
+
+    [sales-failover]
+    exten => 6501,1,NoOp(Sales Ring Group with Failover)
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30)  ; Ring all extensions for 30 seconds
+    same => n,Goto(voicemail,6501,1)  ; If no one answers, go to voicemail or another extension
+    same => n,Hangup()
+
+    Note:
+        - If no one answers within 30 seconds, the call is sent to voicemail or another destination.
+    
+    3.7 Timed-Call with Ringback and Recording
+    You can combine multiple options like ringback and recording the call.
+
+    [sales-record-ringback]
+    exten => 6501,1,NoOp(Sales Ring Group with Ringback and Recording)
+    same => n,Monitor(wav,${UNIQUEID})   ; Start recording the call in wav format
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30,r)  ; Ring all phones with ringback tone
+    same => n,StopMonitor()              ; Stop recording
+    same => n,Hangup()
+
+    Note :
+        - This example records the call while ringing and plays a ringback tone to the caller. The Monitor() function records the call.
+
+Conclusion:
+Asterisk’s Dial() command is highly flexible and allows for different ring strategies, as well as added functionality like playing music or recording calls. By adjusting options like r for ringback, m for music on hold, or using sequential ringing methods, you can create a customized call flow for your business or project needs.
+
