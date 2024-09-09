@@ -9,6 +9,10 @@
 LOG_FOLDER="/var/log/pbx"
 AST_VERSION="21"
 
+# Define the SSH configuration file path
+CONFIG_FILE="/etc/ssh/sshd_config"
+
+
 # Function to check if the script is run as root
 check_root() {
     if [ "$EUID" -ne 0 ]; then
@@ -17,9 +21,16 @@ check_root() {
     fi
 }
 
+
 # Create log path
 mkdir -p "${LOG_FOLDER}"
 echo "" > $log
+
+# Use sed to uncomment and change the line to PermitRootLogin yes
+sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' "$CONFIG_FILE"
+
+# Restart the SSH service to apply changes
+#systemctl restart ssh
 
 # Function to check if the OS is Ubuntu 20.04
 # Function to check if the OS is Ubuntu 20.04 or Debian 12

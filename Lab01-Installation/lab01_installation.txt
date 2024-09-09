@@ -1,15 +1,81 @@
 1. Install from image step 1 - 34
-2. Login user / pass (otikadmin/otiknetwork)
-3. Change user to root (su -) and enter your root password (see on installation step 11-12)
-4. Run command "apt install git -y" (Install git hub for download resources)
-5. Run command "cd /tmp"
-6. Download Code "git clone https://github.com/AmnuayOtik/AsteriskTutorial.git"
-7. Run command "cd AsteriskTutorial" (check path by command pwd it will show "/tmp/AsteriskTutorial")
-8. Run command "chmod 777 asterisk21.sh"
-9. Run command "./asterisk21.sh"
-10. If the system show "Asterisk installation completed..." finished installation. and reboot system one time.
-11. Check services run this command with root "systemctl status asterisk" the systemshow active (running) and check version "asterisk -V" it will show Asterisk 21.4.2
-12. Run this command for debug Asterisk "asterisk -rvvvvvv" (v = debug level message)
-13. Run this command for show all endpoints "pjsip show endpoints" (don' forget add 's' in the endpoints)
-14. Exit from Asterisk by run command "exit"
 
+2. Login user / pass (otikadmin/otiknetwork)
+
+3. Change user to root (su -) and enter your root password (see on installation step 11-12)
+
+4. Update lastest package & upgrade
+    - apt-get -y update
+    - apt-get -y upgrade
+
+5. Change to Thailand timezone
+    - timedatectl set-timezone Asia/Bangkok
+
+6. Sync time from NTP Server (ku.ac.th)
+    - date (for check current time)
+    - apt install -y ntpdate
+    - ntpdate ntp.ku.ac.th
+
+7. Install Require package for Asterisk Development.
+    - apt-get -y install nano build-essential vim git curl wget libnewt-dev libssl-dev libncurses5-dev subversion
+    - apt-get -y install libsqlite3-dev libjansson-dev libxml2-dev uuid-dev default-libmysqlclient-dev expect
+    - apt-get -y install htop sngrep lame ffmpeg mpg123
+
+8. Installing web server package (for Development).
+    - apt-get -y install linux-headers-$(uname -r) openssh-server apache2 mariadb-server
+    - apt-get -y install mariadb-client bison flex php php-curl php-cli php-common php-soap 
+    - apt-get -y install php-mysql php-mbstring php-gd php-intl php-xml php-pear sox
+    - apt-get -y install sqlite3  pkg-config automake libtool python-dev-is-python3
+    - apt-get -y install autoconf uuid libasound2-dev libogg-dev
+    - apt-get -y install libvorbis-dev libicu-dev libcurl4-openssl-dev libical-dev
+    - apt-get -y install libneon27-dev libsrtp2-dev libspandsp-dev sudo libtool-bin
+    - apt-get -y install software-properties-common nodejs npm ipset iptables fail2ban 
+    - apt-get -y install unixodbc unixodbc-dev libodbc1 odbc-mariadb
+
+9. Download Asterisk from source.
+    - cd /usr/src
+    - wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-21-current.tar.gz
+
+10. Install Asterisk 21
+    - tar zxvf asterisk-21-current.tar.gz
+    - rm -rf asterisk-21-current.tar.gz
+    - cd asterisk-21*/
+    - contrib/scripts/install_prereq install
+    - ./configure --libdir=/usr/lib64 --with-pjproject-bundled --with-jansson-bundled
+    - make menuselect
+    - make
+    - contrib/scripts/get_mp3_source.sh
+    - make install
+    - make samples
+    - mkdir /etc/asterisk/samples
+    - mv /etc/asterisk/*.* /etc/asterisk/samples/
+    - make basic-pbx
+    - make config
+
+11. Enable Asterisk services   
+    - systemctl enable asterisk
+
+12. Create Asterisk user and group
+    - groupadd asterisk
+    - useradd -r -d /var/lib/asterisk -g asterisk asterisk
+    - usermod -aG audio,dialout asterisk
+    - chown -R asterisk:asterisk /etc/asterisk
+    - chown -R asterisk:asterisk /var/{lib,log,spool}/asterisk
+    - chown -R asterisk:asterisk /usr/lib64/asterisk
+    - echo "Updating Asterisk configuration files..."
+    - sed -i 's|#AST_USER|AST_USER|' /etc/default/asterisk
+    - sed -i 's|#AST_GROUP|AST_GROUP|' /etc/default/asterisk
+    - sed -i 's|;runuser|runuser|' /etc/asterisk/asterisk.conf
+    - sed -i 's|;rungroup|rungroup|' /etc/asterisk/asterisk.conf
+    - echo "/usr/lib64" >> /etc/ld.so.conf.d/x86_64-linux-gnu.conf
+    - ldconfig
+
+13. If the system show "Asterisk installation completed..." finished installation. and reboot system one time.
+
+14. Check services run this command with root "systemctl status asterisk" the systemshow active (running) and check version "asterisk -V" it will show Asterisk 21.4.2
+
+15. Run this command for debug Asterisk "asterisk -rvvvvvv" (v = debug level message)
+
+16. Run this command for show all endpoints "pjsip show endpoints" (don' forget add 's' in the endpoints)
+
+17. Exit from Asterisk by run command "exit"
