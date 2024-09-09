@@ -17,6 +17,12 @@ root@pbxsys:/etc/asterisk# tree
     ├── queues.conf
     ├── README
 
+Note : before edit pjsip.conf we have to copy original file.
+cp /etc/asterisk/pjsip.conf /etc/asterisk/pjsip.conf.backup
+
+# Clear all content in pjsip.conf
+echo "" > /etc/asterisk/pjsip.conf
+
 *******************************************************************************************
 2. Check user permission for runing asterisk (asterisk:asterisk) user and group
 *******************************************************************************************

@@ -1,0 +1,291 @@
+1. Understanding Contexts, Extensions, and Priorities
+
+2. Dialplan contexts
+Simply place the context name in square brackets. For example, here we define an example context called 'users'.
+    - Dialplan contexts
+    - [users]
+    - [from-internal]
+    - [from-external]
+
+3. Dialplan extensions
+Within each context, we can define one or more extensions. An extension is simply a named set of actions. Asterisk will perform each action, in sequence, when that extension number is dialed. The syntax for an extension is:
+exten => number,priority,application([parameter[,parameter2...]])
+
+Let's look at an example extension.
+    - exten => 200,1,Dial(PJSIP/demo-alice,20)
+
+In this case, the extension number is 200, the priority number is 1, the application is Dial(), and the two parameters to the application are PJSIP/demo-alice and 20.
+
+
+3. Dialplan priorities
+Within each extension, there must be one or more priorities. A priority is simply a sequence number. The first priority on an extension is executed first. When it finishes, the second priority is executed, and so forth.
+
+    3.1 Priority numbers
+
+        exten => 6000,1,do something
+        exten => 6000,2,do something else
+        exten => 6000,4,do something different
+
+        In this case, Asterisk would execute priorities one and two, but would then terminate the call, because it couldn't find priority number three.
+
+        Workshop :
+            - cp /etc/asterisk/extensions.conf /etc/asterisk/extensions.conf.backup
+            - echo "" > /etc/asterisk/extensions.conf
+
+        add this code to extensions.conf
+        *****************************************************
+        [from-internal]
+        exten => 6000,1,NoOp(One)
+        exten => 6000,2,NoOp(Two)
+        exten => 6000,4,NoOp(Three)
+        *****************************************************
+
+            - test call to ext. 200 and see the result
+
+    3.2 Priority letter n
+
+    Priority numbers can also be simplified by using the letter n in place of the priority numbers greater than one. The letter n stands for next, and when Asterisk sees priority n it replaces it in memory with the previous priority number plus one. Note that you must still explicitly declare priority number one.
+
+        exten => 6001,1,NoOp()
+        exten => 6001,n,Verbose("Do something!")
+        exten => 6001,n,Verbose("Do something different!")
+    
+    Note : Every time an extension and priority is executed Asterisk searches for the next best match in priority sequence.
+
+    ### Consider the dialplan below. ###
+
+    exten => 1234,1,Verbose("Valid Number")
+    exten => 4567,1,Verbose("Another Valid Number")
+    exten => _.!,1,Verbose("Catch all for invalid numbers")
+    exten => _.!,n,Verbose("Surprise - executed for all numbers!")
+
+    It may not be immediately intuitive, but the "_.!" extension with the "n" priority will be executed after any of the preceding lines are executed.
+
+    3.3 Priority labels
+
+    You can also assign a label (or alias) to a particular priority number by placing the label in parentheses directly after the priority number, as shown below. Labels make it easier to jump back to a particular location within the extension at a later time.
+
+    exten => 6002,1,NoOp()
+    exten => 6002,n(repeat),Verbose("Do something!")
+    exten => 6002,n,Verbose("Do something different!")
+
+    we've assigned a label named repeat to the second priority.
+
+    *****************************************************
+    ** Included in the Asterisk 1.6.2 branch (and later) there is a way to avoid having to repeat the extension name/number or pattern using the same => prefix.
+    *****************************************************
+
+    exten => 6003,1,NoOp()
+    same => n(repeat),Verbose("Do something!")
+    same => n,Verbose("Do something different!")
+
+4. Dialplan search order
+
+Dialplan search order
+The order of matching within a context is always exact extensions, pattern match extensions, include statements, and switch statements. Includes are always processed depth-first. So for example, if you would like a switch "A" to match before context "B", simply put switch "A" in an included context "C", where "C" is included in your original context before "B".
+
+Search order:
+
+    - Explicit extensions
+    - Pattern match extensions
+    - Includes
+    - Switches
+
+Examples : Search order
+In Asterisk's dialplan, the search order determines how it finds the appropriate extension or action when handling a call. Here's how the search order works with examples:
+
+    1. Explicit Extensions
+        - Description: A direct match for the dialed extension in the current context. These are explicitly defined extensions in the dialplan.
+
+        Example :
+
+            [from-internal]
+            exten => 100,1,Answer()
+            exten => 100,2,Playback(welcome)
+            exten => 100,3,Hangup()
+
+        When someone dials 100, this exact extension will be matched first.
+
+    2. Pattern Match Extensions
+        Description: A pattern that can match a range of extensions. Patterns allow flexibility for matching multiple numbers with a single dialplan entry.
+        
+        Example:
+
+            [from-internal]
+            exten => _1XX,1,Answer()
+            exten => _1XX,2,Playback(digits/1)
+            exten => _1XX,3,Hangup()
+
+            The _1XX pattern matches any three-digit number starting with 1, such as 100, 101, or 199. If no explicit extension is found, Asterisk will check for a pattern match.
+
+    3. Includes
+        Description: Includes allow you to include another context inside the current one. If Asterisk doesn't find a match in the current context, it searches in the included contexts.
+
+        Example:
+
+        [from-internal]
+        include => local-extensions
+
+        [local-extensions]
+        exten => 200,1,Answer()
+        exten => 200,2,Playback(vm-goodbye)
+        exten => 200,3,Hangup()
+
+        If a user dials 200 in the from-internal context and there is no explicit extension 200, Asterisk will search the local-extensions context.
+
+    4. Switches
+        Description: A switch allows the dialplan to pass control to an external system (such as another PBX or database) if no match is found in the context or includes.
+
+        Example:
+
+        [from-external]
+        switch => Realtime/@extensions
+
+        If Asterisk doesn't find a match in the current context or any included contexts, it will try to find an extension using an external source, such as a Realtime database (like MySQL).
+
+    Summary Search Order:
+    1. Explicit Extensions: Asterisk first checks if the exact extension is defined (e.g., 100).
+    2. Pattern Match Extensions: If no explicit extension is found, Asterisk looks for a pattern match (e.g., _1XX).
+    3. Includes: If neither explicit nor pattern matches are found, it searches in the contexts included via the include directive.
+    4. Switches: Finally, if no match is found in the context or included contexts, it checks if a switch to another system or database is defined.
+
+    This is the order in which Asterisk processes the dialplan.
+
+
+5. Basic Dialplan Applications (Answer, Playback and Hangup Applications)
+
+Answer Application
+
+As its name suggests, the Answer() application answers an incoming call. The Answer() application takes a delay (in milliseconds) as its first parameter. Adding a short delay is often useful for ensuring that the remote endpoing has time to begin processing audio before you play a sound prompt. Otherwise, you may not hear the very beginning of the prompt.
+
+******** Knowing When to Answer a Call ***********
+
+When you're first learning your way around the Asterisk dialplan, it may be a bit confusing knowing when to use the Answer() application, and when not to.
+
+If Asterisk is simply going to pass the call off to another device using the Dial() application, you probably don't want to answer the call first. If, on the other hand, you want Asterisk to play sound prompts or gather input from the caller, it's probably a good idea to call the Answer() application before doing anything else.
+
+
+Playback Application
+
+The Playback() application loads a sound prompt from disk and plays it to the caller, ignoring any touch tone input from the caller. The first parameter to the dialplan application is the filename of the sound prompt you wish to play, without a file extension. If the channel has not already been answered, Playback() will answer the call before playing back the sound prompt, unless you pass noanswer as the second parameter.
+
+To avoid the first few milliseconds of a prompt from being cut off you can play a second of silence. For example, if the prompt you wanted to play was hello-world which would look like this in the dialplan:
+
+***************************************************
+Example : 
+exten => 1234,1,Playback(hello-world)
+***************************************************
+
+You could avoid the first few seconds of the prompt from being cut off by playing the silence/1 file:
+
+***************************************************
+Example : 
+exten => 1234,1,Playback(silence/1)
+exten => 1234,n,Playback(hello-world)
+***************************************************
+
+Alternatively this could all be done on the same line by separating the filenames with an ampersand (&):
+
+***************************************************
+Example : 
+exten => 1234,1,Playback(silence/1&hello-world)
+***************************************************
+
+Hangup Application
+
+The Hangup() application hangs up the current call. While not strictly necessary due to auto-fallthrough (see the note on Priority numbers above), in general we recommend you add the Hangup() application as the last priority in any extension.
+
+
+Now let's put Answer(), Playback(), and Hangup() together to play a sample sound file.
+
+***************************************************
+Example :
+exten => 6000,1,Answer(500)
+exten => 6000,n,Playback(hello-world)
+exten => 6000,n,Hangup()
+***************************************************
+
+6. Overview of the Dial Application
+
+The Dial application is probably the most well known and crucial Asterisk application. Asterisk is often used to interface between communication devices and technologies, and Dial is a simple way to establish a connection from the dialplan. When a channel executes Dial then Asterisk will attempt to contact or "dial" all devices passed to the application. If an answer is received then the two channels will be bridged. Dial provides many options to control behavior and will return results and status of the dial operation on a few channel variables.
+
+********************************************
+Using the Dial application
+********************************************
+
+Note : You can use command "core show application Dial" for check how to use it.
+
+[Synopsis]
+    Attempt to connect to another device or endpoint and bridge the call.
+
+[Description]
+    This application will place calls to one or more specified channels. As soon as
+    one of the requested channels answers, the originating channel will be
+    answered, if it has not already been answered. These two channels will then be
+    active in a bridged call. All other channels that were requested will then be
+    hung up.
+    Unless there is a timeout specified, the Dial application will wait
+    indefinitely until one of the called channels answers, the user hangs up, or if
+    all of the called channels are busy or unavailable. Dialplan execution will
+    continue if no requested channels can be called, or if the timeout expires.
+    This application will report normal termination if the originating channel
+    hangs up, or if the call is bridged and either of the parties in the bridge
+    ends the call.
+    If the ${OUTBOUND_GROUP} variable is set, all peer channels created by this
+    application will be put into that group (as in 'Set(GROUP()=...'). If the
+    ${OUTBOUND_GROUP_ONCE} variable is set, all peer channels created by this
+    application will be put into that group (as in 'Set(GROUP()=...'). Unlike
+    ${OUTBOUND_GROUP}, however, the variable will be unset after use.
+
+
+[Syntax]
+    Dial([Technology/Resource[&Technology2/Resource2[&...]]][,timeout[,options[,URL]]])
+
+
+Dialing from dialplan
+
+Below we'll simply dial an endpoint using the chan_pjsip channel driver. This is really going to look at the AOR of the same name as the endpoint and start dialing the first contact associated.
+
+exten => _6XXX,1,Dial(PJSIP/${EXTEN})
+
+To dial all the contacts associated with the endpoint, use the PJSIP_DIAL_CONTACTS() function. It evaluates to a list of contacts separated by &, which causes the Dial application to call them simultaneously.
+
+exten => _6XXX,1,Dial(${PJSIP_DIAL_CONTACTS(${EXTEN})})
+
+how you would dial with an explicit SIP URI, user and domain, via an endpoint (in this case dialing out a trunk), but not using its associated AOR/contact objects.
+
+exten => _9NXXNXXXXXX,1,Dial(PJSIP/mytrunk/sip:${EXTEN:1}@203.0.113.1:5060)
+
+This uses a contact(and its domain) set in the AOR associated with the mytrunk endpoint, but still explicitly sets the user portion of the URI in the dial string. For the AOR's contact, you would define it in the AOR config without the user name.
+
+exten => _9NXXNXXXXXX,1,Dial(PJSIP/${EXTEN:1}@mytrunk)
+
+see more : https://docs.asterisk.org/Latest_API/API_Documentation/Dialplan_Applications/Dial/
+
+************ Workshop *************
+
+    6.1 Create dialplan dial to extension 200 - 2005 and set ring timeout 10 second in from-internal context.
+    
+    Example : 
+
+    [from-internal]
+    exten=>200,1,Dial(PJSIP/200,10)
+    exten=>201,1,Dial(PJSIP/201,10)
+    ...
+
+
+    6.2 When we place call to 6008 print out message "Welcome to Ext. 6008" then playsound "tt-monkey" then Hangup the call.
+    
+    6.3 Create extension 200, 201 , 202, 203 , 204 , 205 , 206 include this application NoOp,Answer, Playback , Dial, Hangup
+        - Print message "Calling to ext. 2xx.
+        - Play somthing sound. "you-are-calling-to-the-extension"
+        - Dial to endpoint.
+        - Terminate call.
+
+    6.4 Run command "dialplan show from-internal" check it.
+
+
+
+
+
+

@@ -1,0 +1,89 @@
+1. Explain Type of trunks
+2. Create example register trunk (NTNEXTGEN NEW)
+*****************************************************
+[trunk-024740265-endpoint]
+type=endpoint
+transport=transport-udp
+context=from-trunk-024740265
+disallow=all
+allow=ulaw
+outbound_auth=trunk-024740265-auth
+aors=trunk-024740265-aor
+direct_media=no
+force_rport=yes
+rewrite_contact=yes
+rtp_symmetric=yes
+from_user=024740265
+from_domain=sip.ntnextgen.com
+from_user=024740265
+dtmf_mode=rfc4733
+send_rpid=no
+force_privacyid=no
+outbound_proxy=sip:res.ntnextgen.com:0\;transport=udp\;lr
+
+[trunk-024740265-auth]
+type=auth
+auth_type=userpass
+username=024740265
+password=xxxxxxxxx
+
+
+[trunk-024740265-aor]
+type=aor
+remove_existing=yes
+maximum_expiration=3600
+minimum_expiration=600
+authenticate_qualify=no
+qualify_frequency=60
+contact=sip:024740265@sip.ntnextgen.com:5060\;transport=udp
+
+[trunk-024740265-registration]
+type=registration
+transport=transport-udp
+outbound_auth=trunk-024740265-auth
+server_uri=sip:172.31.68.4
+client_uri=sip:024740265@sip.ntnextgen.com
+contact_user=024740265
+retry_interval=60
+expiration=120
+line=yes
+endpoint=trunk-024740265-endpoint
+outbound_proxy=sip:res.ntnextgen.com:0\;transport=udp\;lr
+
+[trunk-024740265-identify]
+type=identify
+endpoint=trunk-024740265-endpoint
+match=sip.ntnextgen.com
+*****************************************************
+
+
+3. Create example peer trunk Peer with Yeastar
+*****************************************************
+[trunk-endpoint-peer-p550]
+type = endpoint
+transport = transport-udp
+context = from-trunk
+disallow = all
+allow = ulaw
+aors = trunk-aor-p550
+
+
+[trunk-aor-p550]
+type = aor
+maximum_expiration=3600
+minimum_expiration=600
+authenticate_qualify=no
+qualify_frequency=60
+max_contacts=6
+remove_existing=no
+contact = sip:192.168.98.150
+
+
+[trunk-identify-p550]
+type = identify
+endpoint = trunk-endpoint-peer-p550
+match = 192.168.98.150
+*****************************************************
+
+
+

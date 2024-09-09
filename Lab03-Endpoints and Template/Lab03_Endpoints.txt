@@ -27,8 +27,8 @@ callerid = Lindsey Freddie <200>
 [200]
 type = auth
 auth_type = userpass
-password = 4webrEtHupHewu4
-username = 0019159BF771
+password = 200
+username = 200
 
 [200]
 type = aor
