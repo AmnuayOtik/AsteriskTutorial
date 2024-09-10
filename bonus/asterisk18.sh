@@ -6,9 +6,12 @@
 # PBXSYS BY OTIK NETWORK COMPANY                             #
 #####################################################################################
 
+# Asterisk version
+VERSION="18"
 LOG_FOLDER="/var/log/pbx"
 
-VERSION="18"
+# Define the SSH configuration file path
+CONFIG_FILE="/etc/ssh/sshd_config"
 
 # Function to check if the script is run as root
 check_root() {
@@ -22,7 +25,12 @@ check_root() {
 mkdir -p "${LOG_FOLDER}"
 echo "" > $log
 
-# Function to check if the OS is Ubuntu 20.04
+# Use sed to uncomment and change the line to PermitRootLogin yes
+sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' "$CONFIG_FILE"
+
+# Restart the SSH service to apply changes
+#systemctl restart ssh
+
 # Function to check if the OS is Ubuntu 20.04 or Debian 12
 check_os_version() {
     os_name=$(lsb_release -i | awk '{print $3}')

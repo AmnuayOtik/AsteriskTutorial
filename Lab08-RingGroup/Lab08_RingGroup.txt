@@ -191,9 +191,59 @@ Ring groups are a powerful feature in Asterisk (and many other phone systems) th
     same => n,StopMonitor()              ; Stop recording
     same => n,Hangup()
 
+    Or you can use MixMonitor
+
+    exten => 6503,1,NoOp(Sales Ring Group with Ringback and Recording)
+    same => n,MixMonitor(${UNIQUEID}.wav)   ; Start recording the call in wav format
+    same => n,Dial(PJSIP/200&PJSIP/201&PJSIP/202,30,r)  ; Ring all phones with ringback tone
+    same => n,StopMonitor()              ; Stop recording
+    same => n,Hangup()
+
     Note :
         - This example records the call while ringing and plays a ringback tone to the caller. The Monitor() function records the call.
+
+    *** Monitor() VS MixMonitor() ******    
+
+    Both Monitor() and MixMonitor() were used in Asterisk for call recording, but they had key differences in how they handled audio streams and the way they worked:
+
+    1. Monitor()
+
+    Purpose: 
+        - Monitor() records the incoming (audio received) and outgoing (audio sent) streams of a call separately.
+        - Files: It creates two separate audio files, typically named as:
+            - call-uniqueid-in.wav (incoming audio)
+            - call-uniqueid-out.wav (outgoing audio)
+    
+    Post-processing: 
+        -After recording, you can optionally mix these two audio files into a single file using an external tool (e.g., sox).
+    
+    Advantages:
+        - Allows separate analysis of both streams (e.g., quality measurement, echo analysis).
+        - Useful for troubleshooting when you want to analyze each audio stream separately.
+
+    Usage:
+        - exten => 123,1,Monitor(wav,/var/spool/asterisk/monitor/${UNIQUEID},m)
+        - Here, the m option indicates that the system should automatically mix the two files after the call ends.
+    
+    2. MixMonitor()
+
+    Purpose: 
+        - MixMonitor() records both the incoming and outgoing audio streams, but it mixes them in real-time into a single file during the call.
+        - Files: It creates a single mixed audio file (both sides of the conversation):
+            - call-uniqueid.wav
+        - Post-processing: There is no need for post-processing to combine the audio streams since it's done automatically during the call.
+
+    Advantages:
+        - Convenient for basic call recording where the two audio streams are automatically combined.
+        - Real-time mixing makes it easy to immediately access a single file for playback or analysis.
+    
+    Usage:
+        - exten => 123,1,MixMonitor(${UNIQUEID}.wav)
+
+Note : Since Asterisk 21 no longer includes Monitor() and MixMonitor(), you can achieve similar results using ARI, AGI scripts, or external recording tools depending on your needs.
 
 Conclusion:
 Asterisk’s Dial() command is highly flexible and allows for different ring strategies, as well as added functionality like playing music or recording calls. By adjusting options like r for ringback, m for music on hold, or using sequential ringing methods, you can create a customized call flow for your business or project needs.
 
+Monitor path
+/var/spool/asterisk/monitor/${uniqueid}.wav

@@ -1,0 +1,167 @@
+1. Overview
+In this workshop, we'll cover the how to build voice menus, often referred to as auto-attedants and IVR menus. IVR stands for Interactive Voice Response, and is used to describe a system where a caller navigates through a system by using the touch-tone keys on their phone keypad.
+
+When the caller presses a key on their phone keypad, the phone emits two tones, known as DTMF tones. DTMF stands for Dual Tone Multi-Frequency. Asterisk recognizes the DTMF tones and responds accordingly.
+
+2. Understanding How Background and WaitExten Applications work?
+The Background() application plays a sound prompt, but listens for DTMF input. Asterisk then tries to find an extension in the current dialplan context that matches the DTMF input. If it finds a matching extension, Asterisk will send the call to that extension.
+
+The Background() application takes the name of the sound prompt as the first parameter just like the Playback() application, so remember not to include the file extension.
+
+The Background() and WaitExten() applications are commonly used in Asterisk dialplans for playing a message or music while waiting for a user to input a DTMF extension. Here's an explanation of both with examples:
+
+
+Tip :
+If you have multiple prompts you'd like to play during the Background() application, simply concatenate them together with the ampersand (&) character, like this:
+
+Example :
+exten => 6600,1,Background(prompt1&prompt2&prompt3)
+
+    2.1. Background()
+
+    Purpose: 
+        - Plays a specified sound file and listens for the caller to input an extension during the playback. If an extension is pressed while the sound is playing, Asterisk will stop playback and proceed to that extension.
+    Common Use Case: 
+        - Interactive menus (IVR) where you prompt the caller to press a key and redirect based on the input.
+    
+    Example of Background():
+
+    [main-menu]
+    exten => s,1,Answer()  ; Answer the call
+    same => n,Background(main-menu)  ; Play the 'main-menu' audio file
+    same => n,WaitExten()  ; Wait for the caller to enter an extension
+
+    In this example:
+
+    The Background(main-menu) command plays the main-menu audio file while waiting for input. If the caller presses any digit, it stops playback and routes the call accordingly.
+
+    2.2. WaitExten()
+    Purpose: 
+        - Waits for the caller to input an extension for a specific amount of time (default is set to 10 seconds if not specified).
+        - Common Use Case: After playing a message or prompt, WaitExten() gives the caller time to enter an extension.
+
+    Example of WaitExten():
+
+    [main-menu]
+    exten => s,1,Answer()  ; Answer the call
+    same => n,Background(main-menu)  ; Play the 'main-menu' audio file
+    same => n,WaitExten(5)  ; Wait for 5 seconds for caller to enter an extension
+    same => n,Hangup()  ; Hang up if no input is received
+
+3. Creating a Simple IVR Menu
+
+Let's go ahead and apply what we've learned about the various dialplan applications by building a very simple auto-attendant menu. It is common practice to create an auto-attendant or IVR menu in a new context, so that it remains independant of the other extensions in the dialplan. Please add the following to your dialplan (the extensions.conf file) to create a new demo-menu context. In this new context, we'll create a simple menu that prompts you to enter one or two, and then it will read back what you're entered.
+
+Sample Sound Prompts
+
+Please note that the example below (and many of the other examples in this guide) use sound prompts that are part of the extra sounds packages. If you didn't install the extra sounds earlier, now might be a good time to do that.
+
+[demo-menu]
+exten => s,1,Answer(500)
+ same => n(loop),Background(press-1&or&press-2)
+ same => n,WaitExten()
+
+exten => 1,1,Playback(you-entered)
+ same => n,SayNumber(1)
+ same => n,Goto(s,loop)
+
+exten => 2,1,Playback(you-entered)
+ same => n,SayNumber(2)
+ same => n,Goto(s,loop)
+
+Before we can use the demo menu above, we need to add an extension to the context to redirect the caller to our menu. Add this line to the context in your dialplan:
+
+exten => 6598,1,Goto(demo-menu,s,1)
+
+Reload your dialplan, and then try dialing extension 6598 to test your auto-attendant menu.
+
+4. Goto Application and Priority Labels
+
+Before we create a simple auto-attendant menu, let's cover a couple of other useful dialplan applications. The Goto() application allows us to jump from one position in the dialplan to another. The parameters to the Goto() application are slightly more complicated than with the other applications we've looked at so far, but don't let that scare you off.
+
+The Goto() application can be called with either one, two, or three parameters. If you call the Goto() application with a single parameter, Asterisk will jump to the specified priority (or its label) within the current extension. If you specify two parameters, Asterisk will read the first as an extension within the current context to jump to, and the second parameter as the priority (or label) within that extension. If you pass three parameters to the application, Asterisk will assume they are the context, extension, and priority (respectively) to jump to.
+
+[StartingContext]
+exten => 100,1,Goto(monkeys)
+ same => n,NoOp(We skip this)
+ same => n(monkeys),Playback(tt-monkeys)
+ same => n,Hangup()
+
+exten => 200,1,Goto(start,1) ; play tt-weasels then tt-monkeys
+
+exten => 300,1,Goto(start,monkeys) ; only play tt-monkeys
+
+exten => 400,1,Goto(JumpingContext,start,1) ; play hello-world
+
+exten => start,1,NoOp()
+ same => n,Playback(tt-weasels)
+ same => n(monkeys),Playback(tt-monkeys)
+
+[JumpingContext]
+exten => start,1,NoOp()
+ same => n,Playback(hello-world)
+ same => n,Hangup()
+
+5. Handling Special Extensions
+We have the basics of an auto-attendant created, but now let's make it a bit more robust. We need to be able to handle special situations, such as when the caller enters an invalid extension, or doesn't enter an extension at all. Asterisk has a set of special extensions for dealing with situations like there. They all are named with a single letter, so we recommend you don't create any other extensions named with a single letter.
+
+Let's add a few more lines to our [demo-menu] context, to handle invalid entries and timeouts. Modify your [demo-menu] context so that it matches the one below:
+
+[demo-menu]
+exten => s,1,Answer(500)
+ same => n(loop),Background(press-1&or&press-2)
+ same => n,WaitExten()
+
+exten => 1,1,Playback(you-entered)
+ same => n,SayNumber(1)
+ same => n,Goto(s,loop)
+
+exten => 2,1,Playback(you-entered)
+ same => n,SayNumber(2)
+ same => n,Goto(s,loop)
+
+exten => i,1,Playback(option-is-invalid)
+ same => n,Goto(s,loop)
+
+exten => t,1,Playback(are-you-still-there)
+ same => n,Goto(s,loop)
+
+Now dial your auto-attendant menu again (by dialing extension 6598), and try entering an invalid option (such as 3) at the auto-attendant menu. If you watch the Asterisk command-line interface while you dial and your verbosity level is three or higher, you should see something similar to the following:
+
+-- Executing [6598@users:1] Goto("SIP/demo-alice-00000008", "demo-menu,s,1") in new stack
+-- Goto (demo-menu,s,1)
+-- Executing [s@demo-menu:1] Answer("SIP/demo-alice-00000008", "500") in new stack
+-- Executing [s@demo-menu:2] BackGround("SIP/demo-alice-00000008", "press-1&or&press-2") in new stack
+-- <SIP/demo-alice-00000008> Playing 'press-1.gsm' (language 'en')
+-- <SIP/demo-alice-00000008> Playing 'or.gsm' (language 'en')
+-- <SIP/demo-alice-00000008> Playing 'press-2.gsm' (language 'en')
+-- Invalid extension '3' in context 'demo-menu' on SIP/demo-alice-00000008
+-- Executing [i@demo-menu:1] Playback("SIP/demo-alice-00000008", "option-is-invalid") in new stack
+-- <SIP/demo-alice-00000008> Playing 'option-is-invalid.gsm' (language 'en')
+-- Executing [i@demo-menu:2] Goto("SIP/demo-alice-00000008", "s,loop") in new stack
+-- Goto (demo-menu,s,2)
+-- Executing [s@demo-menu:2] BackGround("SIP/demo-alice-00000008", "press-1&or&press-2") in new stack
+-- <SIP/demo-alice-00000008> Playing 'press-1.gsm' (language 'en')
+-- <SIP/demo-alice-00000008> Playing 'or.gsm' (language 'en')
+-- <SIP/demo-alice-00000008> Playing 'press-2.gsm' (language 'en')
+
+If you don't enter anything at the auto-attendant menu and instead wait approximately ten seconds, you should hear (and see) Asterisk go to the t extension as well.
+
+6. Record Application
+
+For creating your own auto-attendant or IVR menus, you're probably going to want to record your own custom prompts. An easy way to do this is with the Record() application. The Record() application plays a beep, and then begins recording audio until you press the # key on your keypad. It then saves the audio to the filename specified as the first parameter to the application and continues on to the next priority in the extension. If you hang up the call before pressing the hash key, the audio will not be recorded. For example, the following extension records a sound prompt called custom-menu in the gsm format in the en/ sub-directory, and then plays it back to you.
+
+exten => 6597,1,Answer(500)
+ same => n,Record(en/custom-menu.gsm)
+ same => n,Wait(1)
+ same => n,Playback(custom-menu)
+ same => n,Hangup()
+
+!!! tip Recording Formats** When specifiying a file extension when using the Record() application, you must choose a file extension which represents one of the supported file formats in Asterisk. For the complete list of file formats supported in your Asterisk installation, type **core show file formats at the Asterisk command-line interface.
+
+You've now learned the basics of how to create a simple auto-attendant menu. Now let's build a more practical menu for callers to be able to reach Alice or Bob or the dial-by-name directory.
+
+Reference :
+https://docs.asterisk.org/Deployment/Basic-PBX-Functionality/Auto-attendant-and-IVR-Menus/Record-Application/
+
+https://docs.asterisk.org/Deployment/Basic-PBX-Functionality

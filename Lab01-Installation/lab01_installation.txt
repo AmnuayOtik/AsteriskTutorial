@@ -34,12 +34,12 @@
 
 9. Download Asterisk from source.
     - cd /usr/src
-    - wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-21-current.tar.gz
+    - wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18-current.tar.gz
 
-10. Install Asterisk 21
-    - tar zxvf asterisk-21-current.tar.gz
-    - rm -rf asterisk-21-current.tar.gz
-    - cd asterisk-21*/
+10. Install Asterisk 18
+    - tar zxvf asterisk-18-current.tar.gz
+    - rm -rf asterisk-18-current.tar.gz
+    - cd asterisk-18*/
     - contrib/scripts/install_prereq install
     - ./configure --libdir=/usr/lib64 --with-pjproject-bundled --with-jansson-bundled
     - make menuselect

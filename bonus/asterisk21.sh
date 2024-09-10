@@ -12,7 +12,6 @@ AST_VERSION="21"
 # Define the SSH configuration file path
 CONFIG_FILE="/etc/ssh/sshd_config"
 
-
 # Function to check if the script is run as root
 check_root() {
     if [ "$EUID" -ne 0 ]; then
