@@ -9,6 +9,7 @@ Simply place the context name in square brackets. For example, here we define an
 
 3. Dialplan extensions
 Within each context, we can define one or more extensions. An extension is simply a named set of actions. Asterisk will perform each action, in sequence, when that extension number is dialed. The syntax for an extension is:
+
 exten => number,priority,application([parameter[,parameter2...]])
 
 Let's look at an example extension.
@@ -273,7 +274,6 @@ see more : https://docs.asterisk.org/Latest_API/API_Documentation/Dialplan_Appli
     exten=>201,1,Dial(PJSIP/201,10)
     ...
 
-
     6.2 When we place call to 6008 print out message "Welcome to Ext. 6008" then playsound "tt-monkey" then Hangup the call.
     
     6.3 Create extension 200, 201 , 202, 203 , 204 , 205 , 206 include this application NoOp,Answer, Playback , Dial, Hangup
@@ -290,3 +290,170 @@ https://www.narakeet.com/app/text-to-audio
 
 web convert mp3 to wav.
 https://g711.org/
+
+
+7. Understanding Goto() and GoSub() in Dialplan Applications.
+
+The examples of both Goto() and GoSub() in Asterisk dialplans. These applications are used for call flow control, allowing you to jump to specific parts of the dialplan (Goto()) or execute subroutines and return to the original location (GoSub()).
+
+
+7.1. Goto() Example:
+The Goto() application jumps to a specified priority, extension, or context. Here’s a basic example:
+
+[example-context]
+exten => 100,1,Answer()
+exten => 100,2,Playback(hello-world)    ; Play a greeting
+exten => 100,3,Goto(internal-phones,200,1)  ; Jump to extension 200 in the context 'internal-phones'
+exten => 100,4,Hangup()
+
+[internal-phones]
+exten => 200,1,Playback(goodbye)  ; Play a goodbye message
+exten => 200,2,Hangup()
+
+
+Explanation:
+    - In the example-context, the call comes in at extension 100.
+    - After playing the "hello-world" message, Goto() jumps to extension 200, priority 1, in the internal-phones context.
+    - The execution continues in internal-phones, where it plays a "goodbye" message and then hangs up.
+
+7.2. GoSub() Example:
+The GoSub() application is used to call a subroutine (a separate piece of code) and then return to the original dialplan location after the subroutine finishes. Here’s an example:
+
+[example-context]
+exten => 100,1,Answer()
+exten => 100,2,GoSub(playback-routine,s,1)  ; Call a subroutine
+exten => 100,3,Playback(goodbye)  ; After returning from the subroutine, play 'goodbye'
+exten => 100,4,Hangup()
+
+[playback-routine]
+exten => s,1,Playback(hello-world)  ; Subroutine plays 'hello-world'
+exten => s,2,Return()  ; Return to the calling dialplan after playback
+
+
+Explanation:
+    - The call comes in at extension 100 in example-context.
+    - GoSub() jumps to the playback-routine subroutine, starting at extension s (which stands for "start") at priority 1.
+    - In the subroutine, it plays "hello-world" and then returns to the original dialplan at the next priority (100,3), where it plays "goodbye" and hangs up.
+
+Key Differences:
+    - Goto() is for jumping to a different part of the dialplan permanently (no return).
+    - GoSub() is for calling a subroutine and returning after the subroutine finishes execution.
+
+**********************************************************************************
+8. Variables In Asterisk
+**********************************************************************************
+In Asterisk, variables are used to store and manipulate data within the dialplan. They can be set, retrieved, and used to control call flow and behavior. Here’s a guide to using Asterisk variables:
+
+8.1. Setting Variables
+You can set variables using the Set() application. The syntax is:
+
+Set(VAR_NAME=value)
+
+Example:
+
+exten => 100,1,Answer()
+exten => 100,2,Set(CALLER_NAME=${CALLERID(name)})
+exten => 100,3,NoOp(The caller's name is ${CALLER_NAME})
+exten => 100,4,Hangup()
+
+In this example:
+
+- CALLER_NAME is set to the caller’s name retrieved from CALLERID(name).
+- NoOp() logs the value of CALLER_NAME for debugging purposes.
+
+8.2. Using Variables
+Variables can be used in many applications and dialplan functions. For example:
+
+exten => 100,1,Set(VIP_NUMBER=123456)
+exten => 100,2,GotoIf($[${CALLERID(num)} = ${VIP_NUMBER}]?vip,1)
+exten => 100,3,Playback(regular-message)
+exten => 100,4,Hangup()
+
+exten => vip,1,Playback(vip-message)
+exten => vip,2,Hangup()
+
+In this example:
+
+- If the caller’s number matches VIP_NUMBER, the call is redirected to the vip extension.
+- Otherwise, a regular message is played.
+
+
+8.3. Variable Substitution
+Variables can be used in a variety of ways, including within strings:
+
+exten => 100,1,Set(CALLER_NAME=John Doe)
+exten => 100,2,NoOp(Hello ${CALLER_NAME})
+
+In this example, NoOp() will output "Hello John Doe".
+
+8.4. Channel Variables
+
+Asterisk automatically provides several built-in channel variables, such as:
+
+${CALLERID(num)}: The caller’s phone number.
+${CALLERID(name)}: The caller’s name.
+${EXTEN}: The current extension.
+${CHANNEL}: The channel name.
+
+
+8.5 Global Variables
+Global variables are accessible across all contexts and extensions:
+
+[globals]
+MY_GLOBAL_VAR=HelloWorld
+
+[example-context]
+exten => 100,1,NoOp(${MY_GLOBAL_VAR})  ; Outputs 'HelloWorld'
+
+8.6 Local Variables
+Local variables are specific to the current context and extension:
+
+exten => 100,1,Set(MY_LOCAL_VAR=LocalValue)
+exten => 100,2,NoOp(${MY_LOCAL_VAR})  ; Outputs 'LocalValue'
+
+8.7. Functions and Expressions
+Variables can be used in functions and expressions for more advanced manipulations:
+
+exten => 100,1,Set(NUMBER_LENGTH=${LEN(${CALLERID(num)})})
+exten => 100,2,NoOp(The caller's number length is ${NUMBER_LENGTH})
+
+In this example:
+
+- LEN() function calculates the length of the caller’s phone number.
+
+Asterisk also provides special variables for debugging and advanced scenarios:
+
+- ${ARG1} to ${ARGn}: Used to retrieve arguments passed to a subroutine via GoSub().
+- ${HANGUPCAUSE}: Provides the cause of the call hangup.
+
+Understanding and using Asterisk variables effectively can greatly enhance the flexibility and functionality of your dialplan. Let me know if you need more details or examples!
+
+9. Know GotoIf() Application in Dialplan
+The GotoIf() application allows you to conditionally jump to a different part of the dialplan based on the evaluation of a condition. This is useful for implementing branching logic.
+
+Syntax:
+GotoIf(condition?label_if_true[label_if_false])
+
+
+Parameters:
+- condition: An expression that evaluates to true or false.
+- label_if_true: The location to jump to if the condition is true.
+- label_if_false: (Optional) The location to jump to if the condition is false.
+
+Example :
+
+[example-context]
+exten => 100,1,Answer()
+exten => 100,2,Set(IS_VIP=YES)
+exten => 100,3,GotoIf($[${IS_VIP} = YES]?vip-extension,1)  ; If IS_VIP is YES, go to vip-extension
+exten => 100,4,Playback(standard-message)  ; Otherwise, play a standard message
+exten => 100,5,Hangup()
+
+exten => 1,1,Playback(vip-message)  ; VIP extension
+exten => 1,2,Hangup()
+
+
+In this example:
+
+- If IS_VIP is "YES", GotoIf() jumps to vip-extension,1.
+- If IS_VIP is not "YES", it plays a standard message.

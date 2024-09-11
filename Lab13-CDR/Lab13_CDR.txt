@@ -1,0 +1,71 @@
+CDR (Call Detail Records) in Asterisk provides detailed information about the calls processed by the system. CDRs are used for call accounting, billing, and troubleshooting. The CDR captures details such as the call’s source, destination, start time, end time, duration, and status.
+
+1. Basic CDR Information
+Asterisk can log CDRs into various backends like text files, databases (MySQL, PostgreSQL, etc.), or custom scripts.
+
+Example of Basic CDR Fields:
+    - src: The source number of the call (Caller ID number).
+    - dst: The destination number of the call.
+    - start: The time when the call started.
+    - end: The time when the call ended.
+    - duration: The total time the call was active, in seconds.
+    - billsec: The number of seconds the call was actually in progress (excluding ring time).
+    - disposition: The final status of the call (ANSWERED, NO ANSWER, BUSY, FAILED).
+    - uniqueid: A unique identifier for the call.
+
+
+2. Configuring CDR in Asterisk
+CDR is configured primarily in two files: cdr.conf and cdr_custom.conf.
+
+cdr.conf: General configuration
+This file controls the global CDR settings.
+
+Example:
+
+[general]
+enable=yes
+
+[custom]
+; We log the unique ID as it can be useful for troubleshooting any issues
+; that arise.
+loguniqueid=yes
+
+
+
+
+cdr_custom.conf: Customizing CDR Output
+In cdr_custom.conf, you can define the format in which CDRs will be stored. Asterisk supports custom formats such as CSV (Comma-Separated Values).
+
+Example of CSV output in cdr_custom.conf:
+
+[mappings]
+; Our CDR log will be written to /var/log/asterisk/cdr-custom/Master.csv
+; with the following schema.
+Master.csv => ${CSV_QUOTE(${CDR(clid)})},${CSV_QUOTE(${CDR(src)})},${CSV_QUOTE(${CDR(dst)})},${CSV_QUOTE(${CDR(dcontext)})},${CSV_QUOTE(${CDR(channel)})},${CSV_QUOTE(${CDR(dstchannel)})},${CSV_QUOTE(${CDR(lastapp)})},${CSV_QUOTE(${CDR(lastdata)})},${CSV_QUOTE(${CDR(start)})},${CSV_QUOTE(${CDR(answer)})},${CSV_QUOTE(${CDR(end)})},${CSV_QUOTE(${CDR(duration)})},${CSV_QUOTE(${CDR(billsec)})},${CSV_QUOTE(${CDR(disposition)})},${CSV_QUOTE(${CDR(amaflags)})},${CSV_QUOTE(${CDR(accountcode)})},${CSV_QUOTE(${CDR(uniqueid)})},${CSV_QUOTE(${CDR(userfield)})},${CDR(sequence)}
+
+
+This will store the following CDR fields in CSV format:
+
+- ${CDR(clid)}: Caller ID string
+- ${CDR(src)}: Source of the call
+- ${CDR(dst)}: Destination of the call
+- ${CDR(start)}: Start time of the call
+- ${CDR(answer)}: Time when the call was answered
+- ${CDR(end)}: Time when the call ended
+- ${CDR(duration)}: Total call duration
+- ${CDR(billsec)}: Billed seconds (duration of the call after answering)
+- ${CDR(disposition)}: Call status (ANSWERED, NO ANSWER, BUSY, FAILED)
+- ${CDR(uniqueid)}: Unique identifier for the call
+
+3. CDR in the Dialplan
+You can manipulate and use CDR variables directly in the Asterisk dialplan using ${CDR(variable)}. Here are some examples:
+
+Example of setting a CDR field in the dialplan:
+
+exten => 200,1,Set(CHANNEL(accountcode)=12345)  ; Set an account code for billing
+exten => 200,2,Dial(PJSIP/200)
+exten => 200,3,Hangup()
+
+
+
+

@@ -84,3 +84,47 @@ type = identify
 endpoint = trunk-endpoint-peer-p550
 match = 192.168.98.150
 *****************************************************
+
+
+
+4.Dialplan Expressions
+In the context of telephony systems like Asterisk, an "extension" typically refers to a specific endpoint within the phone system that can be dialed, such as a phone, softphone, or even a voicemail box.
+
+When you refer to an "extension expression," it could mean:
+
+4.1 Dialplan Expressions: Extensions in Asterisk dialplans use expressions to match certain patterns of numbers or conditions for handling calls. For example:
+
+_X. matches any sequence of digits.
+_123X matches numbers starting with 123, followed by any one digit (e.g., 1234).
+n represents the next priority in the dialplan.
+A dialplan example:
+
+
+[from-external]
+exten => _X.,1,Answer()
+exten => _X.,n,Playback(hello-world)
+exten => _X.,n,Hangup()
+
+Regular Expressions: If you're dealing with an extension number format, an expression can be used to match specific numbers or patterns in a more complex manner, like regular expressions in programming languages (e.g., Python, PHP).
+
+Example :
+
+[from-trunk-025380538]
+exten => _X.,1,NoOp(Incoming call from trunk 025380538)
+exten => _X.,n,GoSub(from-internal,201,1)
+exten => _X.,n,Hangup()
+
+[from-trunk-025210195]
+exten => _X.,1,NoOp(Incoming call from trunk 025210195)
+exten => _X.,n,GoSub(from-internal,201,1)
+exten => _X.,n,Hangup()
+
+[from-trunk-025380538]
+exten => _X.,1,NoOp(Incoming call from trunk 025380538)
+exten => _X.,n,GoSub(from-internal,204,1)
+exten => _X.,n,Hangup()
+
+[from-trunk-025210195]
+exten => _X.,1,NoOp(Incoming call from trunk 025210195)
+exten => _X.,n,GoSub(from-internal,204,1)
+exten => _X.,n,Hangup()

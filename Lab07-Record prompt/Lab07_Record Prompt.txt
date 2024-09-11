@@ -42,7 +42,7 @@ This will:
 
 Answer the call.
     - Start recording audio to the custom/ivr-greeting.wav file.
-    - Hang up when the recording is finished or terminated.
+    - Hang up when the recording is finished or terminated. (press # for hangup call)
 
 
 2. Recording with a Time Limit and Silence Detection

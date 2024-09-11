@@ -1,0 +1,123 @@
+1. Call Center with Queue
+In Asterisk, queues are used to manage incoming calls by placing them in a queue to be answered by available agents. You can use the Queue() application in the dialplan to handle calls within a queue system. Below is an example of how to configure a queue in the Asterisk dialplan:
+
+1.1. Define a Queue in queues.conf
+First, you need to define the queue and its options in the queues.conf file.
+
+[Queue-After-Services]
+musicclass = default            ; Music class to play while waiting
+strategy = ringall              ; Ring all available agents
+timeout = 15                    ; Timeout before trying the next agent
+retry = 5                       ; Time to wait before retrying the queue
+maxlen = 5                      ; Maximum callers allowed in the queue
+wrapuptime=30000                ; 30 seconds wrap-up time
+
+joinempty = yes                 ; Allow joining the queue even if no agents are available
+leavewhenempty = no             ; Leave the queue if no agents are available
+queue-youarenext = queue-youarenext  ; Announcement for position in the queue
+queue-thankyou = queue-thankyou      ; Announcement when leaving the queue
+queue-callswaiting = queue-callswaiting ; Announcement for calls waiting
+announce-frequency = 30       ; How often to announce queue position
+
+In this example:
+- The [Queue-After-Services] queue is defined with various options like music on hold, ring strategy, and timeout values.
+
+2. Queue Members
+    2.1 Static Queue Members
+    Static members are predefined in the queues.conf configuration file. They are always part of the queue unless removed manually.
+
+    Example of static members in queues.conf:
+
+    [myqueue]
+    strategy = ringall
+    timeout = 15
+    retry = 5
+    maxlen = 5
+
+    ; Static members (always part of the queue)
+    member => PJSIP/200
+    member => PJSIP/201
+
+    In this example, the endpoints PJSIP/200 and PJSIP/201 will always be part of the queue myqueue.
+
+    2.2 Dynamic Queue Members
+    Dynamic members can log in and out of the queue. This is useful for agents who may not always be available.
+
+    Dialplan for Dynamic Queue Members:
+    You can add or remove queue members dynamically using the AddQueueMember() and RemoveQueueMember() applications in the dialplan.
+
+    Add Queue Member
+
+    exten => 6001,1,Answer()
+    exten => 6001,n,AddQueueMember(myqueue,PJSIP/${CALLERID(num)})  ; Add the caller’s endpoint to the queue
+    exten => 6001,n,Playback(agent-loginok)                         ; Playback confirmation of login
+    exten => 6001,n,Hangup()
+
+    In this example:
+
+    An agent can call extension 6001 to log into the queue myqueue.
+    The agent's endpoint is added to the queue based on their Caller ID.
+    Remove Queue Member
+
+    exten => 6002,1,Answer()
+    exten => 6002,n,RemoveQueueMember(myqueue,PJSIP/${CALLERID(num)}) ; Remove the caller’s endpoint from the queue
+    exten => 6002,n,Playback(agent-loggedoff)                         ; Playback confirmation of logout
+    exten => 6002,n,Hangup()
+
+
+5. Queue Strategies
+Asterisk offers different queue strategies that determine how calls are distributed to agents. You can set these strategies in the queues.conf file.
+
+- ringall: Ring all available agents until one answers.
+- leastrecent: Ring the agent who has been idle the longest.
+- fewestcalls: Ring the agent with the fewest completed calls.
+- random: Ring a random agent.
+- rrmemory: Round robin with memory (it remembers the last agent that answered and continues from there).
+
+strategy = ringall   ; Or other strategies like leastrecent, fewestcalls, etc.
+
+
+6. Agent Announcement
+You can also configure Asterisk to announce the caller’s position in the queue using the announce-position and announce-holdtime options in the queues.conf.
+
+announce-position = yes
+announce-holdtime = yes
+announce-frequency = 30     ; Announce queue position every 30 seconds
+
+
+Complete Example: Asterisk Queue Dialplan
+Here’s a full working example:
+
+edit : /etc/asterisk/queues.conf
+
+[Queue-After-Services]
+musicclass = default
+strategy = ringall
+timeout = 15
+retry = 5
+maxlen = 5
+joinempty = yes
+leavewhenempty = no
+announce-position = yes
+announce-holdtime = yes
+announce-frequency = 30
+
+
+edit : /etc/asterisk/extensions.conf
+
+[Queue-Services]
+exten => 6600,1,Answer()
+exten => 6600,n,Queue(Queue-After-Services)
+exten => 6600,n,Hangup()
+
+exten => 6601,1,Answer()
+exten => 6601,n,AddQueueMember(Queue-After-Services,PJSIP/${CALLERID(num)})
+exten => 6601,n,Playback(agent-loginok)
+exten => 6601,n,Hangup()
+
+exten => 6602,1,Answer()
+exten => 6602,n,RemoveQueueMember(Queue-After-Services,PJSIP/${CALLERID(num)})
+exten => 6602,n,Playback(agent-loggedoff)
+exten => 6602,n,Hangup()
+
+This setup will create a queue system where agents can log in and log out dynamically, and callers will be placed in the queue with announcements about their position and hold time.

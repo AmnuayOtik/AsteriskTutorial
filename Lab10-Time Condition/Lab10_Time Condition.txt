@@ -1,0 +1,89 @@
+1. Time Condition with GotoIfTime() Application
+
+In Asterisk, you can implement time-based conditions in your dialplan to route calls differently based on the time of day, day of the week, or even specific dates. This is often referred to as a time condition. You can use GotoIfTime() for this purpose.
+
+GotoIfTime() Application
+The GotoIfTime() application is used to route calls depending on whether the current time matches a specified time period.
+
+Syntax:
+GotoIfTime(times,days_of_week,days_of_month,months?label_if_true[:label_if_false])
+
+Parameters:
+- times: A time range in the format HH:MM-HH:MM or * for any time.
+- days_of_week: A day of the week in numerical form (1=Monday, 2=Tuesday, etc.) or * for any day.
+- days_of_month: A day of the month (1-31) or * for any day.
+- months: A month (1-12) or * for any month.
+- label_if_true: The context, extension, and priority to jump to if the current time matches.
+- label_if_false: (Optional) The location to jump to if the current time does not match.
+
+
+Example 1: Simple Time Condition
+Let’s create a simple time condition where calls during business hours (9 AM to 5 PM) are routed differently than after-hours calls.
+
+[example-context]
+exten => 100,1,Answer()
+exten => 100,2,GotoIfTime(09:00-17:00,mon-fri,*,*?business-hours,1:after-hours,1)
+exten => 100,3,Hangup()
+
+[business-hours]
+exten => 1,1,Playback(welcome-message)  ; Play during business hours
+exten => 1,2,Dial(SIP/200)  ; Route to an extension
+exten => 1,3,Hangup()
+
+[after-hours]
+exten => 1,1,Playback(after-hours-message)  ; Play after-hours message
+exten => 1,2,Hangup()
+
+
+Explanation:
+If the call comes in between 09:00 and 17:00, Monday to Friday (mon-fri), it is routed to the business-hours context.
+Outside of those hours, it is routed to the after-hours context.
+
+Example 2: Time Condition for Specific Days and Months
+Let’s expand on the example by adding a specific condition for weekends and holidays (e.g., July 4th).
+
+[example-context]
+exten => 100,1,Answer()
+exten => 100,2,GotoIfTime(09:00-17:00,mon-fri,*,*?business-hours,1)
+exten => 100,3,GotoIfTime(*,sat-sun,*,*?weekend,1)   ; Check for weekends
+exten => 100,4,GotoIfTime(*,*,4,7?holiday,1)         ; Check for July 4th
+exten => 100,5,Goto(after-hours,1)                   ; Default to after-hours
+
+[business-hours]
+exten => 1,1,Playback(welcome-message)
+exten => 1,2,Dial(SIP/200)
+exten => 1,3,Hangup()
+
+[weekend]
+exten => 1,1,Playback(weekend-message)
+exten => 1,2,Hangup()
+
+[holiday]
+exten => 1,1,Playback(holiday-closed)
+exten => 1,2,Hangup()
+
+[after-hours]
+exten => 1,1,Playback(after-hours-message)
+exten => 1,2,Hangup()
+
+
+Explanation:
+- During business hours (Mon-Fri, 09:00-17:00), the call is routed to the business-hours context.
+- If it's the weekend (Saturday or Sunday), the call goes to the weekend context.
+- If it's July 4th (holiday), the call is routed to the holiday context.
+- All other times go to the after-hours context.
+
+Wildcards:
+- * in any field (times, days, etc.) means "any."
+- You can use mon-fri, sat, sun, etc., for days of the week.
+
+Combining Multiple Time Conditions:
+You can combine time ranges, days of the week, and specific dates in one GotoIfTime() line by separating the values with commas.
+
+Use Cases:
+- Business hours routing: Route calls to an office during working hours and to voicemail after hours.
+- Holiday handling: Route calls to a special holiday message on public holidays.
+- Weekend handling: Route calls to a different queue or message on weekends.
+
+This flexible time-based control can help you build powerful call flows that adjust automatically based on the time and date. Let me know if you need further customization!
+
