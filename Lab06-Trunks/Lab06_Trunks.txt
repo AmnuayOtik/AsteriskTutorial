@@ -99,6 +99,7 @@ _123X matches numbers starting with 123, followed by any one digit (e.g., 1234).
 n represents the next priority in the dialplan.
 A dialplan example:
 
+5. Create Inbound Route
 
 [from-external]
 exten => _X.,1,Answer()
@@ -134,11 +135,38 @@ exten => _X.,1,NoOp(Incoming call from trunk 024740263)
 exten => _X.,n,GoSub(from-internal,201,1)
 exten => _X.,n,Hangup()
 
+6. Create Outbound Route
+You need to set up the outbound routing logic in extensions.conf to handle the outgoing call requests and send them to the trunk.
 
-[make-outbound]
+Example extensions.conf configuration:
+
+[from-internal]
 ; Route 9XXXXXX to trunk-outbound for outbound calls
 exten => _9X.,1,NoOp(Dialing outbound number: ${EXTEN:1})
- same => n,Dial(PJSIP/${EXTEN:1}@trunk-024740263-endpoint,30)
+ same => n,Dial(PJSIP/${EXTEN:1}@trunk-outbound,30)
  same => n,Hangup()
 
- 
+Explanation:
+    - _9X.: Matches any number starting with 9 followed by one or more digits. The 9 is typically used as a prefix for outbound calls, and it's stripped using ${EXTEN:1} to pass the actual number to the trunk.
+
+    - PJSIP/${EXTEN:1}@trunk-outbound: Dials the number (without the 9) using the trunk-outbound configuration.
+    - 30: Timeout for the call, after which it will hang up if not answered.
+
+
+Strip the Prefix (Optional):
+
+If you don't want to dial the 9 prefix, you can adjust the pattern matching. For example, you could simply match any number starting with _X..
+
+exten => _X.,1,NoOp(Dialing outbound number: ${EXTEN})
+ same => n,Dial(PJSIP/${EXTEN}@trunk-outbound,30)
+ same => n,Hangup()
+
+exten => _X.,1,NoOp(Dialing outbound number: ${EXTEN})
+ same => n,Dial(PJSIP/${EXTEN}@trunk-outbound,30)
+ same => n,Hangup()
+
+Reload the Configuration:
+
+asterisk -rx "dialplan reload"
+asterisk -rx "pjsip reload"
+
