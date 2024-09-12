@@ -128,3 +128,17 @@ exten => _X.,n,Hangup()
 exten => _X.,1,NoOp(Incoming call from trunk 025210195)
 exten => _X.,n,GoSub(from-internal,204,1)
 exten => _X.,n,Hangup()
+
+[from-trunk-024740263]
+exten => _X.,1,NoOp(Incoming call from trunk 024740263)
+exten => _X.,n,GoSub(from-internal,201,1)
+exten => _X.,n,Hangup()
+
+
+[make-outbound]
+; Route 9XXXXXX to trunk-outbound for outbound calls
+exten => _9X.,1,NoOp(Dialing outbound number: ${EXTEN:1})
+ same => n,Dial(PJSIP/${EXTEN:1}@trunk-024740263-endpoint,30)
+ same => n,Hangup()
+
+ 
