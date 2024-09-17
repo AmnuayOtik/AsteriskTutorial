@@ -1,0 +1,3 @@
+AGI (Asterisk Gateway Interface) is a scripting interface in Asterisk that allows you to execute external scripts in languages like PHP, Python, Perl, and others when calls enter the system. AGI scripts are used to control call flow, manipulate call data, and interact with external systems.
+
+1. The example AGI Integrate with Python
