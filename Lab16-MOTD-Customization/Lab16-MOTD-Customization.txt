@@ -1,0 +1,13 @@
+1. Create a Custom MOTD Script
+cd /etc/update-motd.d/
+sudo nano /etc/update-motd.d/00-custom-motd
+
+# see file 00-custom-motd
+
+# Change it to execute mode
+sudo chmod +x /etc/update-motd.d/00-custom-motd
+
+2. Test the Custom MOTD
+run-parts /etc/update-motd.d/
+
+don't forget to restart system one time to take the effect.

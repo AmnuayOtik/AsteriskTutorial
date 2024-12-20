@@ -1,0 +1,48 @@
+#!/bin/bash
+# Custom MOTD for PBXSYS BY OTIKNETWORK
+
+# Check Asterisk version
+#ASTERISK_VERSION=$(asterisk -rx 'core show version' 2>/dev/null | head -n 1 || echo "Not Installed")
+ASTERISK_VERSION=$(asterisk -rx "core show version" | awk '{print $2}')
+
+# Check Asterisk status
+ASTERISK_STATUS=$(systemctl is-active asterisk 2>/dev/null || echo "Unknown")
+
+# Get the current IP address
+IP_ADDRESS=$(hostname -I | awk '{print $1}' || echo "No IP Address")
+
+# Count PJSIP accounts
+PJSIP_ACCOUNT_COUNT=$(asterisk -rx 'pjsip show endpoints' 2>/dev/null | grep -c 'Endpoint: ' || echo "0")
+
+# Get Maximum Calls
+MAX_CALLS=$(asterisk -rx "core show settings" | grep "Maximum calls" | awk -F: '{print $2}' | xargs)
+
+# Set color for Asterisk status
+if [ "$ASTERISK_STATUS" = "active" ]; then
+    ASTERISK_STATUS_COLOR="\033[32m$ASTERISK_STATUS\033[0m" # Green for running
+elif [ "$ASTERISK_STATUS" = "inactive" ]; then
+    ASTERISK_STATUS_COLOR="\033[31m$ASTERISK_STATUS\033[0m" # Red for stopped
+else
+    ASTERISK_STATUS_COLOR="\033[33m$ASTERISK_STATUS\033[0m" # Yellow for unknown
+fi
+
+# Display custom MOTD
+cat << 'EOF'
+  _____  ______   __ _______     _______ 
+ |  __ \|  _ \ \ / // ____\ \   / / ____|
+ | |__) | |_) \ V /| (___  \ \_/ / (___  
+ |  ___/|  _ < > <  \___ \  \   / \___ \ 
+ | |    | |_) / . \ ____) |  | |  ____) |
+ |_|    |____/_/ \_\_____/   |_| |_____/ 
+                                         
+*********************************************
+PBXSYS BY OTIKNETWORK | WWW.OTIKNETWORK.COM
+*********************************************
+
+EOF
+
+echo -e "Asterisk version : $ASTERISK_VERSION"
+echo -e "Asterisk status  : $ASTERISK_STATUS_COLOR"
+echo -e "IP Address       : $IP_ADDRESS"
+echo -e "SIP Account   : $PJSIP_ACCOUNT_COUNT"
+echo -e "Concurrent Limit : $MAX_CALLS"
