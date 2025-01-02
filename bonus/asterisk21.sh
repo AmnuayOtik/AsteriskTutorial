@@ -198,6 +198,20 @@ sed -i 's|;rungroup|rungroup|' /etc/asterisk/asterisk.conf
 echo "/usr/lib64" >> /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 ldconfig
 
+# Create new files
+touch /etc/asterisk/pjsip_endpoints.conf
+touch /etc/asterisk/pjsip_aors.conf
+touch /etc/asterisk/pjsip_auths.conf
+touch /etc/asterisk/pjsip_registrations.conf
+touch /etc/asterisk/pjsip_identified.conf
+touch /etc/asterisk/extensions_additional.conf
+touch /etc/asterisk/cli_aliases.conf
+
+# Give asterisk permissions
+chown -R asterisk:asterisk /etc/asterisk/pjsip_*
+chown -R asterisk:asterisk /etc/asterisk/extensions_*
+chown -R asterisk:asterisk /etc/asterisk/cli_*
+
 echo "Create odbc..."
 cat <<EOF > /etc/odbcinst.ini
 [MySQL]
