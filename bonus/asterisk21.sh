@@ -3,14 +3,22 @@
 # * Copyright 2024 by Otik Network Company
 # This script carries NO WARRANTY.
 #####################################################################################
-# PBXSYS BY OTIK NETWORK COMPANY | www.otiknetwork.com                              #
+# PBXSYS BY OTIK NETWORK COMPANY                             #
 #####################################################################################
 
 LOG_FOLDER="/var/log/pbx"
-AST_VERSION="21"
 
 # Define the SSH configuration file path
 CONFIG_FILE="/etc/ssh/sshd_config"
+
+# Use sed to uncomment and change the line to PermitRootLogin yes
+sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' "$CONFIG_FILE"
+
+# Restart the SSH service to apply changes
+#systemctl restart ssh
+
+# Display message
+echo "PermitRootLogin has been set to yes and SSH service restarted."
 
 # Function to check if the script is run as root
 check_root() {
@@ -20,16 +28,9 @@ check_root() {
     fi
 }
 
-
 # Create log path
 mkdir -p "${LOG_FOLDER}"
 echo "" > $log
-
-# Use sed to uncomment and change the line to PermitRootLogin yes
-sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' "$CONFIG_FILE"
-
-# Restart the SSH service to apply changes
-#systemctl restart ssh
 
 # Function to check if the OS is Ubuntu 20.04
 # Function to check if the OS is Ubuntu 20.04 or Debian 12
@@ -112,14 +113,14 @@ apt-get -y install unixodbc unixodbc-dev libodbc1 odbc-mariadb
 # Install Asterisk
 echo "Downloading Asterisk..."
 cd /usr/src
-wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-${AST_VERSION}-current.tar.gz
+wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-21-current.tar.gz
 if [ $? -ne 0 ]; then
     echo "Download Asterisk failed"
     exit 1
 fi
-tar zxvf asterisk-${AST_VERSION}-current.tar.gz
-rm -rf asterisk-${AST_VERSION}-current.tar.gz
-cd asterisk-${AST_VERSION}*/
+tar zxvf asterisk-21-current.tar.gz
+rm -rf asterisk-21-current.tar.gz
+cd asterisk-21*/
 contrib/scripts/install_prereq install
 ./configure --libdir=/usr/lib64 --with-pjproject-bundled --with-jansson-bundled
 
@@ -128,6 +129,7 @@ echo "Compiling and installing Asterisk..."
 make menuselect.makeopts
 
 menuselect/menuselect \
+--enable chan_mobile \
 --enable chan_ooh323 \
 --enable format_mp3 \
 --enable res_config_mysql \
@@ -253,7 +255,5 @@ WWW.OTIKNETWORK.COM / 02-538-4378, 095-549-9819
 
 EOF
 
-echo "***************************************************************"
 echo "Asterisk installation completed successfully."
-echo "Please reboot your system one time"
-echo "***************************************************************"
+
