@@ -1,0 +1,55 @@
+We can set custom variables for endpoints in Asterisk PJSIP. These variables are often used to store additional metadata or custom information about the endpoint, which can then be accessed in the dial plan or for other purposes.
+
+Setting Custom Variables for Endpoints
+You can use the set_var option in the endpoint configuration to define custom variables. Here's how it works:
+
+Example Configuration
+In your pjsip_endpoints.conf file (or wherever your endpoint configurations are stored):
+
+[1000]
+type=endpoint
+transport=transport-udp
+context=from-internal
+disallow=all
+allow=ulaw
+aors=1000
+auth=auth1000
+set_var=CustomVar1=Value1
+set_var=CustomVar2=Value2
+
+Accessing Custom Variables in the Dial Plan
+In your extensions.conf (or equivalent dial plan file), you can access the custom variables using ${CHANNEL()} or ${PJSIP_HEADER()} depending on your needs.
+
+Example Usage
+[from-internal]
+exten => 1000,1,NoOp(Custom Variable 1: ${CHANNEL(customvar1)})
+exten => 1000,n,NoOp(Custom Variable 2: ${CHANNEL(customvar2)})
+exten => 1000,n,Answer()
+exten => 1000,n,Hangup()
+
+Use Cases for Custom Variables
+Tagging Calls:
+
+Use custom variables to tag calls with specific information about the endpoint, such as department, location, or permissions.
+Dynamic Routing:
+
+Direct calls to different destinations based on the custom variable values.
+Logging and Monitoring:
+
+Add metadata to CDRs (Call Detail Records) or logs for better traceability.
+Application Integration:
+
+Pass endpoint-specific information to external systems via AGI, ARI, or AMI.
+Important Notes
+Case Sensitivity:
+
+Variable names are case-insensitive in Asterisk but ensure consistent naming conventions.
+Scope:
+
+set_var variables are tied to the specific endpoint and are available only during the call session for that endpoint.
+Security:
+
+Avoid storing sensitive information in custom variables unless necessary, and ensure proper access control.
+Custom variables enhance the flexibility of endpoint configurations, allowing you to build more dynamic and powerful VoIP applications.
+
+
