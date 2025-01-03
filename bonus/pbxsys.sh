@@ -200,7 +200,8 @@ sed -i 's|;rungroup|rungroup|' /etc/asterisk/asterisk.conf
 echo "/usr/lib64" >> /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 ldconfig
 
-# Create new files
+#Creating default config files
+mkdir -p /etc/asterisk
 touch /etc/asterisk/pjsip_endpoints.conf
 touch /etc/asterisk/pjsip_aors.conf
 touch /etc/asterisk/pjsip_auths.conf
@@ -208,11 +209,12 @@ touch /etc/asterisk/pjsip_registrations.conf
 touch /etc/asterisk/pjsip_identified.conf
 touch /etc/asterisk/extensions_additional.conf
 touch /etc/asterisk/cli_aliases.conf
+touch /etc/asterisk/extconfig_custom.conf
+touch /etc/asterisk/extensions_override_freepbx.conf
+touch /etc/asterisk/extensions_custom.conf
 
 # Give asterisk permissions
-chown -R asterisk:asterisk /etc/asterisk/pjsip_*
-chown -R asterisk:asterisk /etc/asterisk/extensions_*
-chown -R asterisk:asterisk /etc/asterisk/cli_*
+chown -R asterisk:asterisk /etc/asterisk
 
 # Set default transport udp/5060
 echo "Set Default Transport UDP/5060"
