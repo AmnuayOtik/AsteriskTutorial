@@ -1,0 +1,114 @@
+
+Reject Non-Matching User-Agents in pjsip.conf
+If you prefer to keep everything in pjsip.conf, we can use the identify section.
+
+
+[400]
+type=identify
+endpoint=400
+match_header=User-Agent:^MicroSIP
+
+# restart or reload module
+sudo systemctl restart asterisk
+
+# More parameter for Identified Type
+ ParameterName     : ParameterValue
+ ========================================
+ endpoint          : 400
+ match             :
+ match_header      : User-Agent:^MicroSIP
+ match_request_uri :
+ srv_lookups       : true
+
+****************************************************************
+1. match_request_uri
+****************************************************************
+Description:
+
+Matches incoming requests based on the Request-URI of the SIP request.
+The Request-URI is typically the SIP URI to which the request is being addressed (e.g., sip:400@10.2.2.236).
+
+Usage:
+
+Useful for identifying an endpoint based on the specific domain or SIP URI.
+
+Example:
+
+[400-identify]
+type=identify
+endpoint=400
+match_request_uri=sip:400@10.2.2.236
+
+Behavior:
+
+If the incoming SIP request’s URI matches the value specified in match_request_uri, it identifies the request with the corresponding endpoint.
+
+****************************************************************
+2. match
+****************************************************************
+Description:
+
+Matches incoming SIP requests based on their source IP address or IP address ranges.
+Primarily used for static IP-based authentication or routing.
+
+Usage:
+
+Specify a single IP address or a network range (CIDR format).
+
+Example:
+
+[400-identify]
+type=identify
+endpoint=400
+match=10.2.2.10
+match=192.168.1.0/24
+
+Behavior:
+
+If the source IP of the incoming SIP request matches one of the specified IPs or ranges, the request is associated with the specified endpoint.
+
+****************************************************************
+3. srv_lookups
+****************************************************************
+Description:
+
+Enables or disables SRV (Service Record) DNS lookups for SIP requests.
+SRV lookups allow DNS to provide information about the location (IP address and port) of SIP services for a given domain.
+
+Usage:
+
+Useful when dealing with SIP providers or peers that use SRV records in their DNS setup.
+
+Example:
+
+[global]
+srv_lookups=yes
+
+Options:
+true (or yes): Enables SRV lookups.
+false (or no): Disables SRV lookups (default behavior).
+
+Behavior:
+
+If enabled, Asterisk will perform SRV DNS lookups for SIP URIs to resolve the target server's IP and port.
+
+
+****************************************************************
+Summary Table
+****************************************************************
+
+Parameter : match_request_uri	
+Description : Match based on the SIP Request-URI	
+Example : match_request_uri=sip:400@domain.com
+Use Cases : Ideal for differentiating requests addressed to specific URIs in multi-domain setups.
+
+Parameter : match	
+Description : Match based on source IP or IP range	
+Example : match=10.2.2.10 or match=192.168.1.0/24
+Use Cases : Useful when you want to allow requests only from specific IPs or IP ranges.
+
+
+Parameter : srv_lookups	
+Description : Enable/disable SRV DNS lookups for SIP URIs	
+Example : srv_lookups=yes
+Use Cases : Necessary for handling dynamic DNS-based SIP providers or load-balanced SIP services.
