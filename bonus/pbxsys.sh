@@ -220,18 +220,26 @@ chown -R asterisk:asterisk /etc/asterisk
 echo "Set Default Transport UDP/5060"
 echo "" > /etc/asterisk/pjsip.conf
 
-cat <<EOF > /etc/asteris/pjsip.conf
-;============================ TRANSPORTS ===========================
-; Our primary transport definition for UDP communication behind NAT.
-;============================ TRANSPORTS ===========================
+cat <<EOF > /etc/asterisk/pjsip.conf
+;===========================================================
+; Not edit this file because it will overwrite by system
+; By Otik Network Co.,Ltd. | www.otiknetwork.com
+;===========================================================
 [transport-udp-nat]
 type = transport
 protocol = udp
 bind = 0.0.0.0
 ; NAT settings
-;local_net = 10.0.0.0/8
-;external_media_address = 203.0.113.1
-;external_signaling_address = 203.0.113.1
+;local_net = 192.168.98.0/24
+;external_media_address = sip.otikcloud.com
+;external_signaling_address = sip.otikcloud.com
+
+#include pjsip_endpoints.conf
+#include pjsip_aors.conf
+#include pjsip_auths.conf
+#include pjsip_registrations.conf
+#include pjsip_identified.conf
+
 EOF
 
 
